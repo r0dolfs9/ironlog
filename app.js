@@ -224,6 +224,7 @@ function navTo(pid, title, colVar) {
 // ── Muscle Page ───────────────────────────────────────────────────────────────
 function renderMuscle(cat, col) {
   const pg  = document.getElementById('page-muscle-'+cat);
+  if (!pg) return;
   const exs = DB.exercises[cat] || [];
   pg.innerHTML = `<div class="pg-hdr" style="--pc:${col}">
     <div class="pg-title" style="color:${col}">${CAT_LBL[cat]}</div>
@@ -274,8 +275,8 @@ function logForm(exId, cat, col, last) {
     const p = last && last.sets[i];
     rows += `<tr>
       <td><div class="sn">${i+1}</div></td>
-      <td><input class="sf" type="text" inputmode="decimal" placeholder="${p?p.reps:'10'}" value="${p?p.reps:''}" id="r-${exId}-${i}"></td>
-      <td><input class="sf" type="text" inputmode="decimal" placeholder="${p?p.weight:'0'}"  value="${p?p.weight:''}" id="w-${exId}-${i}"></td>
+      <td><input class="sf" type="text" inputmode="decimal" placeholder="${p?p.reps:'10'}" value="" id="r-${exId}-${i}"></td>
+      <td><input class="sf" type="text" inputmode="decimal" placeholder="${p?p.weight:'0'}"  value="" id="w-${exId}-${i}"></td>
       <td><div class="dk" id="dk-${exId}-${i}" onclick="tDone('${exId}',${i})">&#10003;</div></td>
     </tr>`;
   }
@@ -312,10 +313,13 @@ function toggleCard(exId, cat, col, inSplit) {
 }
 
 function chgSets(exId, cat, col, d) {
+  const scnEl = document.getElementById('scn-'+exId);
+  const stbEl = document.getElementById('stb-'+exId);
+  if (!scnEl || !stbEl) return;
   const old = setCounts[exId] || 2;
   const n   = Math.max(1, Math.min(10, old + d));
   setCounts[exId] = n;
-  document.getElementById('scn-'+exId).textContent = n;
+  scnEl.textContent = n;
   // preserve entered values and done-states before rebuild
   const saved = {};
   for (let i = 0; i <= old; i++) {
@@ -329,8 +333,8 @@ function chgSets(exId, cat, col, d) {
   let rows = '';
   for (let i = 0; i < n; i++) {
     const p      = last && last.sets[i];
-    const rv     = saved[i] !== undefined ? saved[i].r : (p ? p.reps   : '');
-    const wv     = saved[i] !== undefined ? saved[i].w : (p ? p.weight : '');
+    const rv     = saved[i] !== undefined ? saved[i].r : '';
+    const wv     = saved[i] !== undefined ? saved[i].w : '';
     const isDone = saved[i]?.done || false;
     rows += `<tr>
       <td><div class="sn">${i+1}</div></td>
@@ -339,7 +343,7 @@ function chgSets(exId, cat, col, d) {
       <td><div class="dk${isDone?' on':''}" id="dk-${exId}-${i}" onclick="tDone('${exId}',${i})">&#10003;</div></td>
     </tr>`;
   }
-  document.getElementById('stb-'+exId).innerHTML = rows;
+  stbEl.innerHTML = rows;
 }
 
 function tDone(exId, i) {

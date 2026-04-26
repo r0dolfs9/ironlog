@@ -472,6 +472,27 @@ body { font-family:'DM Sans',sans-serif; color:var(--text); }
   .sidebar.open { transform:translateX(0); }
   .hmbgr { display:flex; }
   .rest-pill { bottom:16px; }
+
+  /* Larger tap targets on mobile */
+  .sc-b  { width:38px; height:38px; font-size:19px; }
+  .dk    { width:38px; height:38px; font-size:15px; }
+  .ex-del { width:36px; height:36px; font-size:18px; }
+  .hmbgr  { width:40px; height:40px; }
+  .sb-btn { padding:11px 16px; }
+
+  /* More breathing room between cards and inside pages */
+  .ex-list    { gap:10px; padding:14px 12px 0; }
+  .sp-ex-list { gap:8px; }
+  .ex-head    { padding:15px 14px; }
+
+  /* Slightly larger set inputs for fat fingers */
+  .sf { padding:11px 6px; font-size:16px; }
+
+  /* Sheet buttons easier to hit */
+  .sh-cancel, .sh-ok { padding:15px; font-size:15px; }
+
+  /* Save button more prominent */
+  .sav-btn { padding:15px; font-size:16px; }
 }
 
 @media (orientation:landscape) and (max-height:500px) {
