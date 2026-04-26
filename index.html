@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>IronLog</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+<nav class="sidebar" id="sidebar">
+  <div class="sb-logo"><h1>IronLog</h1><p>Workout Journal</p></div>
+  <div class="sb-sec" id="sbSplitsWrap">
+    <div class="sb-sec-lbl">Workouts <button class="sb-add-split" onclick="addSplit()" title="New workout day">+</button></div>
+    <div id="sbSplits"></div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-sec-lbl">Muscle Groups</div>
+    <button class="sb-btn" data-pid="muscle-chest"     style="--cc:var(--chest)"     onclick="navTo('muscle-chest','Chest','--chest')"><span class="sb-dot" style="--cc:var(--chest)"></span>Chest</button>
+    <button class="sb-btn" data-pid="muscle-triceps"   style="--cc:var(--triceps)"   onclick="navTo('muscle-triceps','Triceps','--triceps')"><span class="sb-dot" style="--cc:var(--triceps)"></span>Triceps</button>
+    <button class="sb-btn" data-pid="muscle-back"      style="--cc:var(--back)"      onclick="navTo('muscle-back','Back','--back')"><span class="sb-dot" style="--cc:var(--back)"></span>Back</button>
+    <button class="sb-btn" data-pid="muscle-biceps"    style="--cc:var(--biceps)"    onclick="navTo('muscle-biceps','Biceps','--biceps')"><span class="sb-dot" style="--cc:var(--biceps)"></span>Biceps</button>
+    <button class="sb-btn" data-pid="muscle-legs"      style="--cc:var(--legs)"      onclick="navTo('muscle-legs','Legs','--legs')"><span class="sb-dot" style="--cc:var(--legs)"></span>Legs</button>
+    <button class="sb-btn" data-pid="muscle-shoulders" style="--cc:var(--shoulders)" onclick="navTo('muscle-shoulders','Shoulders','--shoulders')"><span class="sb-dot" style="--cc:var(--shoulders)"></span>Shoulders</button>
+    <button class="sb-btn" data-pid="muscle-abs"       style="--cc:var(--abs)"       onclick="navTo('muscle-abs','Abs','--abs')"><span class="sb-dot" style="--cc:var(--abs)"></span>Abs</button>
+    <button class="sb-btn" data-pid="muscle-forearms"  style="--cc:var(--forearms)"  onclick="navTo('muscle-forearms','Forearms','--forearms')"><span class="sb-dot" style="--cc:var(--forearms)"></span>Forearms</button>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-sec-lbl">Insights</div>
+    <button class="sb-btn" data-pid="history"    onclick="navTo('history','History','--acc')"><span class="sb-icon">📋</span>History</button>
+    <button class="sb-btn" data-pid="progress"   onclick="navTo('progress','Progress','--acc')"><span class="sb-icon">📈</span>Progress</button>
+    <button class="sb-btn" data-pid="bodyweight" onclick="navTo('bodyweight','Body Weight','--acc')"><span class="sb-icon">⚖️</span>Body Weight</button>
+    <button class="sb-btn" data-pid="recap"      onclick="navTo('recap','Recap','--acc')"><span class="sb-icon">🏅</span>Recap</button>
+  </div>
+  <div class="sb-footer">
+    <button class="sb-ftn sb-prof" id="profBtn" onclick="showProfilePicker()">👤 Profile</button>
+    <button class="sb-ftn" onclick="exportData()">&#8595; Export JSON</button>
+    <button class="sb-ftn" onclick="document.getElementById('impF').click()">&#8593; Import JSON</button>
+    <input type="file" id="impF" accept=".json" style="display:none" onchange="importData(event)">
+    <div class="sb-streak" id="streakBadge">No streak yet</div>
+  </div>
+</nav>
+<div class="sb-ov" id="sbOv" onclick="closeSB()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="hmbgr" onclick="toggleSB()">&#9776;</button>
+    <div class="tb-title" id="tbTitle">IronLog</div>
+    <button class="tb-bw" onclick="navTo('bodyweight','Body Weight','--acc')" title="Log body weight">&#9878; BW</button>
+  </div>
+  <div class="pages" id="pages">
+    <div class="page" id="page-history"><div id="histList"></div></div>
+    <div class="page" id="page-recap"><div id="recapContent"></div></div>
+    <div class="page" id="page-progress">
+      <div class="psel-wrap">
+        <select class="psel" id="pSel" onchange="renderProgress()">
+          <option value="">&#8212; Pick a muscle group &#8212;</option>
+        </select>
+      </div>
+      <div id="progContent"><div class="no-data">Select a muscle group above</div></div>
+    </div>
+    <div class="page" id="page-bodyweight">
+      <div class="bw-card">
+        <div class="bw-card-title">Log Body Weight</div>
+        <div class="bw-row">
+          <div class="bw-field">
+            <div class="bw-lbl">Date</div>
+            <input type="date" class="bw-inp" id="bwDate" style="font-size:13px;padding:10px 6px;">
+          </div>
+          <div class="bw-field">
+            <div class="bw-lbl">Weight (kg)</div>
+            <input type="text" inputmode="decimal" class="bw-inp" id="bwKg" placeholder="75.0">
+          </div>
+          <button class="bw-add" onclick="saveBW()">Add</button>
+        </div>
+      </div>
+      <div class="bw-list" id="bwList"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Profile Picker -->
+<div class="prof-ov" id="profOv">
+  <div class="prof-wrap">
+    <div class="prof-logo">IronLog</div>
+    <div class="prof-sub" id="profSub">Who's training?</div>
+    <div class="prof-list" id="profList"></div>
+    <button class="prof-new-btn" onclick="showNewProf()">+ New Profile</button>
+  </div>
+</div>
+
+<!-- Rest Timer -->
+<div class="rest-pill" id="restPill">
+  REST <span id="restSec">90</span>s
+  <button class="rest-pill-cancel" onclick="cancelRest()">&#10005;</button>
+</div>
+
+<!-- Exercise Picker -->
+<div class="picker-ov" id="pickerOv">
+  <div class="picker-wrap">
+    <div class="picker-hdr">
+      <div class="picker-title">Pick Exercises</div>
+      <button class="sum-close" onclick="closePicker()">&#10005;</button>
+    </div>
+    <input class="sh-inp" id="pickerSearch" placeholder="Search..." oninput="filterPicker()" style="margin:0 16px 10px;width:calc(100% - 32px)">
+    <div class="picker-list" id="pickerList"></div>
+    <div class="picker-foot">
+      <button class="sh-cancel" onclick="closePicker()">Cancel</button>
+      <button class="sh-ok" onclick="confirmPicker()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sheet -->
+<div class="ov-dark" id="shBg" onclick="closeSheet()"></div>
+<div class="sheet" id="addSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title" id="shTitle">Add Exercise</div>
+  <input class="sh-inp" id="shInp" placeholder="e.g. Incline DB Press" onkeydown="if(event.key==='Enter')doAdd()">
+  <div class="sh-acts">
+    <button class="sh-cancel" onclick="closeSheet()">Cancel</button>
+    <button class="sh-ok" onclick="doAdd()">Add</button>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="conf-ov" id="confOv">
+  <div class="conf-box">
+    <div class="conf-msg" id="confMsg"></div>
+    <div class="conf-btns">
+      <button class="c-no" onclick="resolveConf(false)">Cancel</button>
+      <button class="c-yes" id="cYes" onclick="resolveConf(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="sum-ov" id="sumOv">
+  <div class="sum-box" id="sumBox"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

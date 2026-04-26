@@ -1,0 +1,17 @@
+ - Line chart when ≥2 entries
+    - Delete entries
+
+    ### Session Summary Overlay
+    - Exercises count, total sets, total volume
+    - Muscles worked chips (color-coded)
+    - Per-exercise set chips
+    - Progress vs last session (weight ↑, volume ↑/↓)
+    - Screenshot prompt button
+
+    ## Known Bugs (not yet fixed)
+    - Comma key (`,`) does nothing / decimal input issues on some keyboards
+    - Some buttons non-functional in certain states
+    - Layout bugs on various screen sizes
+    - Set count ± buttons sometimes re-render and lose typed values
+
+    ---
