@@ -382,6 +382,7 @@ If you feel tempted to build any of these, re-read this section.
 | Full multi-profile system | Everyone logs on their own phone |
 | Paid features / subscription | Free app |
 | Desktop-first web dashboard | Mobile-first only |
+| Mini-game during rest (e.g. Flappy Bird) | Pulls focus away from training. Rest time is mental prep. A motivational one-liner on the rest overlay ("Last set was 100kg, beat it") achieves the same feel without the distraction. |
 
 ---
 

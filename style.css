@@ -383,6 +383,13 @@ body { font-family:'DM Sans',sans-serif; color:var(--text); }
 .sum-prog-pill.eq { color:var(--t2); background:var(--s3); }
 .sum-prog-vs { font-size:10px; color:var(--t3); }
 
+.sum-pr-badge {
+  display:inline-block; margin-left:6px;
+  background:var(--acc); color:#000;
+  font-family:'Syne',sans-serif; font-size:9px; font-weight:800;
+  padding:2px 6px; border-radius:5px; letter-spacing:.5px;
+  vertical-align:middle;
+}
 .ss-btn {
   width:100%; padding:14px; border-radius:12px; margin-top:8px;
   background:var(--s2); border:1px solid var(--border);
@@ -458,6 +465,10 @@ body { font-family:'DM Sans',sans-serif; color:var(--text); }
 .rest-ov-num {
   font-family:'Syne',sans-serif; font-size:100px; font-weight:800;
   color:var(--acc); line-height:1; font-variant-numeric:tabular-nums;
+}
+.rest-ov-hint {
+  font-size:12px; color:var(--t2); margin-top:6px; min-height:16px;
+  font-family:'DM Mono',monospace; letter-spacing:.3px;
 }
 .rest-ov-bar-wrap {
   width:180px; height:3px; background:var(--s3);

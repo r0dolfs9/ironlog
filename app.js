@@ -111,17 +111,19 @@ let restInt = null;
 let restTotal = 90;
 let restRemaining = 90;
 
-function startRest() {
+function startRest(hint = '') {
   if (!DB.settings.restEnabled) return;
   cancelRest();
   restTotal     = DB.settings.restSecs || 90;
   restRemaining = restTotal;
-  const ov    = document.getElementById('restOv');
-  const numEl = document.getElementById('restNum');
-  const barEl = document.getElementById('restBar');
+  const ov     = document.getElementById('restOv');
+  const numEl  = document.getElementById('restNum');
+  const barEl  = document.getElementById('restBar');
+  const hintEl = document.getElementById('restHint');
   if (!ov) return;
   numEl.textContent  = restRemaining;
   barEl.style.width  = '100%';
+  if (hintEl) hintEl.textContent = hint;
   ov.classList.add('show');
   restInt = setInterval(() => {
     restRemaining--;
@@ -391,8 +393,13 @@ function tDone(exId, i) {
   const el = document.getElementById(`dk-${exId}-${i}`);
   if (!el) return;
   el.classList.toggle('on');
-  if (el.classList.contains('on')) startRest();
-  else cancelRest();
+  if (el.classList.contains('on')) {
+    const wVal = parseNum(document.getElementById(`w-${exId}-${i}`)?.value);
+    const rVal = parseNum(document.getElementById(`r-${exId}-${i}`)?.value);
+    startRest(wVal > 0 ? `${rVal > 0 ? rVal + ' reps @ ' : ''}${wVal}kg — beat it next set` : '');
+  } else {
+    cancelRest();
+  }
 }
 
 function saveEx(exId, cat) {
@@ -1128,12 +1135,29 @@ function openSummary(spId) {
   const totalSets = nonCardio.reduce((a,w) => a+w.sets.length, 0);
   const totalVol  = nonCardio.reduce((a,w) => a+vol(w.sets), 0);
   const musclesWorked = [...new Set(nonCardio.map(w => w.cat))];
+
+  // Volume vs last time this split was done
+  const prevSplitDay = DB.workouts
+    .filter(w => w.splitId===spId && w.date!==td && w.cat!=='cardio')
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const prevSplitVol = prevSplitDay.reduce((a,w) => a+vol(w.sets), 0);
+  const volDiff = prevSplitVol > 0 ? Math.round(totalVol - prevSplitVol) : null;
+  const volDiffStr = volDiff !== null ? (volDiff >= 0 ? `+${volDiff}kg` : `${volDiff}kg`) : '';
+  const volDiffCol = volDiff !== null ? (volDiff >= 0 ? '#22c55e' : '#ef4444') : '';
+
+  // PRs set today
+  const todayPRs = new Set();
+  nonCardio.forEach(w => {
+    const prevBest = DB.workouts.filter(x => x.exId===w.exId && x.date!==td).reduce((a,x)=>Math.max(a,maxWt(x.sets)),0);
+    if (maxWt(w.sets) > prevBest && maxWt(w.sets) > 0) todayPRs.add(w.exId);
+  });
+
   let html = `<div class="sum-hd"><div class="sum-title">Workout Done</div><button class="sum-close" onclick="closeSummary()">&#10005;</button></div>
   <div class="sum-date">${sp.name} · ${fd(td)}</div>
   <div class="sum-stats">
     <div class="sum-stat"><div class="sum-stat-val">${nonCardio.length}</div><div class="sum-stat-lbl">Exercises</div></div>
-    <div class="sum-stat"><div class="sum-stat-val">${totalSets}</div><div class="sum-stat-lbl">Total Sets</div></div>
-    <div class="sum-stat"><div class="sum-stat-val">${Math.round(totalVol)}<span style="font-size:11px;font-weight:400">kg</span></div><div class="sum-stat-lbl">Volume</div></div>
+    <div class="sum-stat"><div class="sum-stat-val">${totalSets}</div><div class="sum-stat-lbl">Sets</div></div>
+    <div class="sum-stat"><div class="sum-stat-val">${Math.round(totalVol)}<span style="font-size:11px;font-weight:400">kg</span></div><div class="sum-stat-lbl">Volume${volDiffStr ? `<br><span style="font-size:10px;color:${volDiffCol};font-weight:700">${volDiffStr} vs last</span>` : ''}</div></div>
   </div>`;
   if (musclesWorked.length) {
     html += `<div class="sum-mg"><div class="sum-mg-lbl">Muscles Worked</div><div class="sum-mg-chips">${musclesWorked.map(cat => {
@@ -1157,7 +1181,8 @@ function openSummary(spId) {
         const p = calcProgress(entry.sets, lastS.sets);
         progHTML = `<div class="sum-prog"><div class="sum-prog-pill ${p.cls}">${p.label}</div><div class="sum-prog-vs">vs ${fd(lastS.date)}</div></div>`;
       }
-      html += `<div class="sum-ex"><div class="sum-ex-nm">${entry.name}</div><div class="sum-chips">${entry.sets.map((s,i) => `<div class="sum-chip">S${i+1}: ${s.reps||'?'}×${s.weight||'0'}kg</div>`).join('')}</div>${progHTML}${entry.notes?`<div style="font-size:10px;color:var(--t3);margin-top:4px;font-style:italic">${entry.notes}</div>`:''}</div>`;
+      const prBadge = todayPRs.has(entry.exId) ? `<span class="sum-pr-badge">PR</span>` : '';
+      html += `<div class="sum-ex"><div class="sum-ex-nm">${entry.name}${prBadge}</div><div class="sum-chips">${entry.sets.map((s,i) => `<div class="sum-chip">S${i+1}: ${s.reps||'?'}×${s.weight||'0'}kg</div>`).join('')}</div>${progHTML}${entry.notes?`<div style="font-size:10px;color:var(--t3);margin-top:4px;font-style:italic">${entry.notes}</div>`:''}</div>`;
     });
     html += `</div>`;
   });
@@ -1287,10 +1312,10 @@ function buildRecap(mode) {
   // ── Build achievements top 3 ───────────────────────────────────────────────
   const achievements = [];
   if (prList.length) achievements.push({icon:'🏆', title:`${prList.length} new PR${prList.length>1?'s':''}`, sub: prList.slice(0,2).map(p=>`${p.name}: ${p.best}kg`).join(', ')});
-  if (improved) achievements.push({icon:'📈', title:`Best improvement: ${improved.name}`, sub:`${improved.from}kg → ${improved.to}kg (+${improved.pct}%)`});
-  if (topMuscle) achievements.push({icon:'💪', title:`Volume leader: ${CAT_LBL[topMuscle[0]]||topMuscle[0]}`, sub:`${Math.round(topMuscle[1])}kg total volume`});
-  if (curDays > 0 && sessDelta !== null && sessDelta > 0) achievements.push({icon:'🔥', title:`${curDays} session${curDays>1?'s':''} this ${mode}`, sub:`+${sessDelta} vs last ${mode}`});
-  else if (curDays > 0) achievements.push({icon:'📅', title:`${curDays} session${curDays>1?'s':''} this ${mode}`, sub: prevDays ? `vs ${prevDays} last ${mode}` : 'Keep it up!'});
+  if (improved) achievements.push({icon:'📈', title:`Best improvement: ${improved.name}`, sub:`${improved.from}kg to ${improved.to}kg (+${improved.pct}%)`});
+  if (topMuscle && curDays >= 2) achievements.push({icon:'💪', title:`Volume leader: ${CAT_LBL[topMuscle[0]]||topMuscle[0]}`, sub:`${Math.round(topMuscle[1])}kg total volume`});
+  if (curDays > 0 && sessDelta !== null && sessDelta > 0) achievements.push({icon:'🔥', title:`${curDays} session${curDays>1?'s':''} this ${mode}`, sub:`+${sessDelta} more than last ${mode}`});
+  else if (curDays > 0 && prevDays > 0) achievements.push({icon:'📅', title:`${curDays} session${curDays>1?'s':''} this ${mode}`, sub:`${prevDays} last ${mode}`});
 
   // ── Focus area (1 thing to improve) ───────────────────────────────────────
   let focus = null;
@@ -1321,9 +1346,7 @@ function buildRecap(mode) {
   if (!focus && prevDays > curDays && prevDays > 1) {
     focus = {icon:'📆', title:`Fewer sessions than last ${mode}`, sub:`${curDays} this ${mode} vs ${prevDays} last ${mode}. Push for consistency!`};
   }
-  if (!focus && curDays === 0) {
-    focus = {icon:'💤', title:`No workouts logged yet`, sub:`This ${mode} is still empty — get started!`};
-  }
+  // (no fallback needed — empty state covers zero-data case)
 
   // ── Body weight summary ────────────────────────────────────────────────────
   const bwInPeriod = bwEntries.filter(e => e.date >= cur[0] && e.date <= cur[1]);
