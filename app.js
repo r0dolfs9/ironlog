@@ -17,7 +17,7 @@ const DEFAULT_SPLITS = [
   {id:'split-3', name:'Arms & Shoulders', color:'--biceps',  sections:[
     {type:'muscle',group:'biceps'},{type:'muscle',group:'triceps'},{type:'muscle',group:'forearms'},{type:'muscle',group:'shoulders'},{type:'muscle',group:'abs'},{type:'cardio'}]},
 ];
-const SPLIT_COLORS = ['--back','--chest','--legs','--biceps','--shoulders','--triceps','--abs','--cardio'];
+const SPLIT_COLORS = ['--back','--chest','--legs','--biceps','--shoulders','--triceps','--abs','--forearms','--cardio'];
 const MUSCLES = ['chest','triceps','back','biceps','legs','shoulders','abs','forearms'];
 const DEF = {
   chest:     ['Barbell Bench Press','Incline Dumbbell Press','Cable Fly'],
@@ -63,11 +63,12 @@ function loadDB() {
     if (!d.bodyWeights) d.bodyWeights = [];
     if (!d.splits) d.splits = DEFAULT_SPLITS.map(s => JSON.parse(JSON.stringify(s)));
     if (!d.bwGoal) d.bwGoal = null;
+    if (!d.settings) d.settings = { restEnabled: true, restSecs: 90 };
     return d;
   }
   const ex = {};
   MUSCLES.forEach(m => { ex[m] = DEF[m].map(n => ({id:uid(),name:n})); });
-  return {exercises:ex, workouts:[], bodyWeights:[], splits:DEFAULT_SPLITS.map(s => JSON.parse(JSON.stringify(s))), bwGoal:null};
+  return {exercises:ex, workouts:[], bodyWeights:[], splits:DEFAULT_SPLITS.map(s => JSON.parse(JSON.stringify(s))), bwGoal:null, settings:{ restEnabled:true, restSecs:90 }};
 }
 function saveDB() { localStorage.setItem(dbKey(), JSON.stringify(DB)); }
 
@@ -107,26 +108,66 @@ function resolveConf(v) {
 
 // ── Rest Timer ────────────────────────────────────────────────────────────────
 let restInt = null;
-const REST_SEC = 90;
+let restTotal = 90;
+let restRemaining = 90;
 
 function startRest() {
+  if (!DB.settings.restEnabled) return;
   cancelRest();
-  let s = REST_SEC;
-  const pill  = document.getElementById('restPill');
-  const secEl = document.getElementById('restSec');
-  if (!pill) return;
-  secEl.textContent = s;
-  pill.classList.add('show');
+  restTotal     = DB.settings.restSecs || 90;
+  restRemaining = restTotal;
+  const ov    = document.getElementById('restOv');
+  const numEl = document.getElementById('restNum');
+  const barEl = document.getElementById('restBar');
+  if (!ov) return;
+  numEl.textContent  = restRemaining;
+  barEl.style.width  = '100%';
+  ov.classList.add('show');
   restInt = setInterval(() => {
-    s--;
-    secEl.textContent = s;
-    if (s <= 0) { cancelRest(); toast('Rest over — go! 💪'); }
+    restRemaining--;
+    numEl.textContent = restRemaining;
+    barEl.style.width = Math.max(0, restRemaining / restTotal * 100) + '%';
+    if (restRemaining <= 0) { cancelRest(); toast('Rest over, go! 💪'); }
   }, 1000);
 }
 
 function cancelRest() {
   if (restInt) { clearInterval(restInt); restInt = null; }
-  document.getElementById('restPill')?.classList.remove('show');
+  document.getElementById('restOv')?.classList.remove('show');
+}
+
+function adjustRestTime(delta) {
+  restRemaining = Math.max(5, restRemaining + delta);
+  restTotal     = Math.max(5, restTotal + delta);
+  DB.settings.restSecs = restTotal;
+  saveDB();
+  const numEl = document.getElementById('restNum');
+  const barEl = document.getElementById('restBar');
+  if (numEl) numEl.textContent = restRemaining;
+  if (barEl) barEl.style.width = Math.max(0, restRemaining / restTotal * 100) + '%';
+}
+
+function disableRest() {
+  DB.settings.restEnabled = false;
+  saveDB();
+  cancelRest();
+  updateRestToggleBtn();
+  toast('Rest timer off. Re-enable in the sidebar.');
+}
+
+function toggleRestTimer() {
+  DB.settings.restEnabled = !DB.settings.restEnabled;
+  saveDB();
+  updateRestToggleBtn();
+  toast(DB.settings.restEnabled ? 'Rest timer on' : 'Rest timer off');
+}
+
+function updateRestToggleBtn() {
+  const btn = document.getElementById('restToggleBtn');
+  if (!btn) return;
+  const on = DB.settings.restEnabled;
+  btn.textContent = `⏱ Rest Timer: ${on ? 'ON' : 'OFF'}`;
+  btn.style.color = on ? 'var(--acc)' : 'var(--t3)';
 }
 
 // ── Streak ────────────────────────────────────────────────────────────────────
@@ -402,11 +443,12 @@ function renderSplit(spId, col) {
 
   let hdr;
   if (editing) {
-    hdr = `<div class="sp-hdr">
-      <input class="sp-name-inp" id="spNameInp-${spId}" value="${sp.name.replace(/"/g,'&quot;')}" onblur="renameSplit('${spId}',this.value)">
-      <div class="sp-edit-colors">${SPLIT_COLORS.map(c=>`<div class="sp-color-dot${sp.color===c?' sel':''}" style="background:${cv(c)}" onclick="recolorSplit('${spId}','${c}')"></div>`).join('')}</div>
+    hdr = `<div class="edit-banner">EDITING — tap Done when finished</div>
+    <div class="sp-hdr sp-hdr-edit">
+      <input class="sp-name-inp" id="spNameInp-${spId}" value="${sp.name.replace(/"/g,'&quot;')}" onblur="renameSplit('${spId}',this.value)" placeholder="Workout name">
       <button class="sp-done-btn" onclick="exitEditMode('${spId}')">Done</button>
-    </div>`;
+    </div>
+    <div class="sp-edit-colors-row">${SPLIT_COLORS.map(c=>`<div class="sp-color-dot${sp.color===c?' sel':''}" style="background:${cv(c)}" title="${c.replace('--','')}" onclick="recolorSplit('${spId}','${c}')"></div>`).join('')}</div>`;
   } else {
     hdr = `<div class="sp-hdr">
       <div class="sp-title">${sp.name}</div>
@@ -417,9 +459,14 @@ function renderSplit(spId, col) {
 
   let sectionsHtml = '';
   sp.sections.forEach((sec, idx) => {
+    const total = sp.sections.length;
+    const reorderBtns = editing ? `<div class="sec-reorder">
+      <button class="sec-move-btn${idx===0?' disabled':''}" onclick="moveSection('${spId}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+      <button class="sec-move-btn${idx===total-1?' disabled':''}" onclick="moveSection('${spId}',${idx},1)" ${idx===total-1?'disabled':''}>↓</button>
+    </div>` : '';
     const removeBtn = editing ? `<button class="sec-remove" onclick="removeSection('${spId}',${idx})">&#10005;</button>` : '';
     if (sec.type === 'cardio') {
-      sectionsHtml += `<div class="sp-cat" style="position:relative">${removeBtn}${cardioHTML()}</div>`;
+      sectionsHtml += `<div class="sp-cat sp-cat-edit-wrap">${reorderBtns}<div class="sp-cat-edit-inner" style="position:relative">${removeBtn}${cardioHTML()}</div></div>`;
       return;
     }
     const group = sec.group;
@@ -428,10 +475,8 @@ function renderSplit(spId, col) {
     if (sec.type === 'muscle') {
       exs = DB.exercises[group] || [];
     } else {
-      // type:'exercises' — only listed names
       const all = DB.exercises[group] || [];
       exs = all.filter(e => sec.list.includes(e.name));
-      // also include any that were in list but don't exist yet (add them)
       sec.list.forEach(nm => {
         if (!exs.find(e => e.name === nm)) {
           if (!DB.exercises[group]) DB.exercises[group] = [];
@@ -443,16 +488,16 @@ function renderSplit(spId, col) {
       });
     }
     const lbl = sec.type === 'exercises'
-      ? `${CAT_LBL[group] || group} <span style="font-size:8px;color:var(--t3)">(selected)</span>`
+      ? `${CAT_LBL[group] || group} <span style="font-size:8px;color:var(--t3)">(selected only)</span>`
       : CAT_LBL[group] || group;
-    sectionsHtml += `<div class="sp-cat" style="position:relative">
+    sectionsHtml += `<div class="sp-cat sp-cat-edit-wrap">${reorderBtns}<div class="sp-cat-edit-inner" style="position:relative">
       ${removeBtn}
       <div class="sp-cat-lbl" style="color:${c}">${lbl}</div>
       <div class="sp-ex-list">
         ${exs.map(ex => exCard(ex, group, c, true)).join('')}
         ${!editing ? `<button class="add-cat-btn" style="border-color:${c}44;color:${c}" onclick="openSheet('${group}')">+ Add ${CAT_LBL[group]} exercise</button>` : ''}
       </div>
-    </div>`;
+    </div></div>`;
   });
 
   let editTools = '';
@@ -493,6 +538,18 @@ function removeSection(spId, idx) {
   const sp = DB.splits.find(s => s.id===spId);
   if (!sp) return;
   sp.sections.splice(idx, 1);
+  saveDB();
+  renderSplit(spId, cv(sp.color));
+}
+
+function moveSection(spId, idx, dir) {
+  const sp = DB.splits.find(s => s.id===spId);
+  if (!sp) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= sp.sections.length) return;
+  const tmp = sp.sections[idx];
+  sp.sections[idx] = sp.sections[newIdx];
+  sp.sections[newIdx] = tmp;
   saveDB();
   renderSplit(spId, cv(sp.color));
 }
@@ -775,7 +832,7 @@ function confirmPicker() {
 function renderHistory() {
   const c = document.getElementById('histList');
   if (!DB.workouts.length) {
-    c.innerHTML = `<div class="hist-empty">📋<br><br>No workouts yet</div>`;
+    c.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-msg">No workouts logged yet</div><div class="empty-state-sub">Start a split from the sidebar,<br>log your first session, and it will appear here.</div></div>`;
     return;
   }
   const sessMap = new Map();
@@ -922,7 +979,7 @@ function renderBW() {
   const entries = [...(DB.bodyWeights||[])].sort((a,b) => b.date.localeCompare(a.date));
   const listEl  = document.getElementById('bwList');
   if (!entries.length) {
-    listEl.innerHTML = `<div class="bw-list-hdr">HISTORY</div><div class="no-data" style="padding:20px 0">No entries yet</div>`;
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚖️</div><div class="empty-state-msg">No weight logged yet</div><div class="empty-state-sub">Enter your weight above and tap Add.<br>Once you have 2 entries, a chart appears.</div></div>`;
     return;
   }
   const sorted  = [...entries].sort((a,b) => a.date.localeCompare(b.date));
@@ -1177,7 +1234,7 @@ function buildRecap(mode) {
   const prevW = workoutsInRange(prev[0], prev[1]);
 
   if (!curW.length && !prevW.length) {
-    return `<div class="no-data" style="padding:60px 20px">No data yet for this period.<br><br>Start logging workouts!</div>`;
+    return `<div class="empty-state"><div class="empty-state-icon">🏅</div><div class="empty-state-msg">No data for this period</div><div class="empty-state-sub">Log workouts this ${mode} and your recap<br>will show up here automatically.</div></div>`;
   }
 
   const label = mode === 'week'
@@ -1448,6 +1505,7 @@ function startApp() {
   DB = loadDB();
   updateStreak();
   updateProfBtn();
+  updateRestToggleBtn();
   renderSidebar();
   const first = DB.splits[0] || {id:'split-0', name:'Back & Bis', color:'--back'};
   navTo(first.id, first.name, first.color);

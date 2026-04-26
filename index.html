@@ -41,6 +41,7 @@
     <button class="sb-ftn" onclick="exportData()">&#8595; Export JSON</button>
     <button class="sb-ftn" onclick="document.getElementById('impF').click()">&#8593; Import JSON</button>
     <input type="file" id="impF" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="sb-ftn sb-rest-toggle" id="restToggleBtn" onclick="toggleRestTimer()">&#9201; Rest Timer: ON</button>
     <div class="sb-streak" id="streakBadge">No streak yet</div>
   </div>
 </nav>
@@ -94,10 +95,19 @@
   </div>
 </div>
 
-<!-- Rest Timer -->
-<div class="rest-pill" id="restPill">
-  REST <span id="restSec">90</span>s
-  <button class="rest-pill-cancel" onclick="cancelRest()">&#10005;</button>
+<!-- Rest Timer Overlay -->
+<div class="rest-ov" id="restOv">
+  <div class="rest-ov-box">
+    <div class="rest-ov-label">REST</div>
+    <div class="rest-ov-num" id="restNum">90</div>
+    <div class="rest-ov-bar-wrap"><div class="rest-ov-bar" id="restBar"></div></div>
+    <div class="rest-ov-adj">
+      <button class="rest-adj-btn" onclick="adjustRestTime(-15)">-15s</button>
+      <button class="rest-skip-btn" onclick="cancelRest()">Skip Rest</button>
+      <button class="rest-adj-btn" onclick="adjustRestTime(15)">+15s</button>
+    </div>
+    <button class="rest-ov-off" onclick="disableRest()">Turn off rest timer</button>
+  </div>
 </div>
 
 <!-- Exercise Picker -->
