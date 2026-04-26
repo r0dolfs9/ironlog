@@ -165,10 +165,10 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Comma → period in decimal inputs (fixes locale decimal separator)
+// Comma → period in all decimal inputs (fixes locale decimal separator)
 document.addEventListener('input', e => {
   const el = e.target;
-  if (el.classList.contains('sf') || el.classList.contains('cff') || el.id === 'bwKg') {
+  if (el.inputMode === 'decimal' || el.inputMode === 'numeric') {
     const pos = el.selectionStart;
     const replaced = el.value.replace(/,/g, '.');
     if (replaced !== el.value) {
