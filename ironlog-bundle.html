@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -482,6 +482,27 @@ body { font-family:'DM Sans',sans-serif; color:var(--text); }
   .sidebar.open { transform:translateX(0); }
   .hmbgr { display:flex; }
   .rest-pill { bottom:16px; }
+}
+
+@media (orientation:landscape) and (max-height:500px) {
+  /* Phone in landscape: force overlay sidebar regardless of width */
+  .sidebar { position:fixed; left:0; top:0; bottom:0; transform:translateX(-100%); z-index:50; }
+  .sidebar.open { transform:translateX(0); }
+  .hmbgr { display:flex; }
+  /* Shrink topbar so content has room */
+  .topbar { padding:6px 16px; }
+  /* Compact page and split headers */
+  .pg-hdr { padding:10px 16px 8px; }
+  .pg-title { font-size:20px; }
+  .sp-hdr { padding:10px 16px 8px; }
+  .sp-title { font-size:18px; }
+  /* Less bottom padding so last item isn't hidden */
+  .page { padding-bottom:40px; }
+  /* Rest pill sits higher to avoid home bar */
+  .rest-pill { bottom:12px; }
+  /* Compact sidebar internals when open */
+  .sb-logo { padding:12px 16px 10px; }
+  .sb-logo h1 { font-size:18px; }
 }
 
 /* ── Profile Picker ────────────────────────────────────────────────────────── */
