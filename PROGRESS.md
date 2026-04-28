@@ -145,6 +145,22 @@ All bugs and UX fixes shipped across 5 commits on master:
 
 ## Session Log
 
+### 2026-04-28 — Phase 2 PWA foundation committed + pushed
+
+DONE:
+- manifest.json — standalone display, portrait lock, #0c0c0c theme, icon refs
+- sw.js — cache-first service worker, caches index.html + style.css + app.js + Chart.js CDN
+- icons/generate-icons.html — open in browser to download icon-192.png + icon-512.png
+- index.html updated — manifest link, apple-touch-icon, theme-color meta, SW registration
+- Pushed to GitHub (commit 431385e)
+
+NEXT STEPS (do in order):
+1. Open icons/generate-icons.html in browser → download both PNGs into icons/ folder
+2. Go to github.com/r0dolfs9/ironlog → Settings → Pages → master / root → Save
+3. Commit + push the two PNG icons
+4. Wait ~60s → open r0dolfs9.github.io/ironlog on phone
+5. Android: "Add to Home Screen" prompt in Chrome; iPhone: Share → Add to Home Screen
+
 ### 2026-04-28 — Progress file created + GitHub repo audited
 - Read IRONLOG_PROJECT.md, CHANGES.md, NOTES.md, STATUS.md.txt
 - Checked GitHub: https://github.com/r0dolfs9/ironlog — 6 commits on master, all Phase 1 work is shipped
