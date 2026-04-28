@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>IronLog — Icon Generator</title>
+<style>
+  body { background: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; gap: 24px; }
+  h1 { color: #c9ff47; margin: 0; }
+  p { color: #aaa; margin: 0; }
+  .icons { display: flex; gap: 32px; align-items: flex-end; }
+  .icon-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  canvas { border-radius: 22%; border: 1px solid #333; }
+  button { background: #c9ff47; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
+  button:hover { background: #b8ee36; }
+  .note { color: #888; font-size: 13px; max-width: 480px; text-align: center; line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1>IronLog Icon Generator</h1>
+<p>Click each button to download the PNG. Save both files into the <code>icons/</code> folder.</p>
+
+<div class="icons">
+  <div class="icon-wrap">
+    <canvas id="c192" width="192" height="192"></canvas>
+    <button onclick="download('c192','icon-192.png')">Download icon-192.png</button>
+  </div>
+  <div class="icon-wrap">
+    <canvas id="c512" width="512" height="512"></canvas>
+    <button onclick="download('c512','icon-512.png')">Download icon-512.png</button>
+  </div>
+</div>
+
+<p class="note">After downloading both files, put them in the <code>icons/</code> folder next to this file, then push to GitHub. The PWA install prompt will appear once both icons are live.</p>
+
+<script>
+function drawIcon(canvas) {
+  const s = canvas.width;
+  const ctx = canvas.getContext('2d');
+  const pad = s * 0.12;
+  const acc = '#c9ff47';
+
+  // Background
+  ctx.fillStyle = '#0c0c0c';
+  ctx.fillRect(0, 0, s, s);
+
+  // Barbell
+  const barY = s * 0.42;
+  const barH = s * 0.075;
+  const barX = pad;
+  const barW = s - pad * 2;
+  const plateW = s * 0.11;
+  const plateH = s * 0.22;
+  const plateR = s * 0.018;
+
+  ctx.fillStyle = acc;
+
+  // Bar shaft
+  ctx.fillRect(barX + plateW, barY - barH * 0.35, barW - plateW * 2, barH * 0.7);
+
+  // Left plate
+  roundRect(ctx, barX, barY - plateH / 2, plateW, plateH, plateR);
+  ctx.fill();
+
+  // Right plate
+  roundRect(ctx, barX + barW - plateW, barY - plateH / 2, plateW, plateH, plateR);
+  ctx.fill();
+
+  // "IRONLOG" text
+  const fontSize = s * 0.115;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `800 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('IRONLOG', s / 2, s * 0.67);
+
+  // Lime underline accent
+  const lineW = s * 0.38;
+  const lineH = s * 0.018;
+  ctx.fillStyle = acc;
+  ctx.fillRect(s / 2 - lineW / 2, s * 0.76, lineW, lineH);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function download(canvasId, filename) {
+  const a = document.createElement('a');
+  a.download = filename;
+  a.href = document.getElementById(canvasId).toDataURL('image/png');
+  a.click();
+}
+
+drawIcon(document.getElementById('c192'));
+drawIcon(document.getElementById('c512'));
+</script>
+</body>
+</html>
