@@ -1414,6 +1414,61 @@ function exportData() {
   toast('Exported!');
 }
 
+function showDataText() {
+  const json = JSON.stringify(DB, null, 2);
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;';
+  ov.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="color:#c9ff47;font-weight:700;font-size:15px;">Copy all text below</div>
+      <button onclick="this.closest('div[style]').remove()" style="background:#252525;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
+    </div>
+    <button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('_exportTA').value).then(()=>alert('Copied!'))" style="background:#c9ff47;color:#000;border:none;padding:10px;border-radius:8px;font-weight:700;margin-bottom:10px;font-size:14px;cursor:pointer;">Copy to Clipboard</button>
+    <textarea id="_exportTA" style="flex:1;background:#151515;color:#fff;border:1px solid #333;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;resize:none;" onclick="this.select()">${json.replace(/</g,'&lt;')}</textarea>
+    <div style="color:#666;font-size:12px;margin-top:8px;">If clipboard doesn't work: tap inside the box → Select All → Copy</div>`;
+  document.body.appendChild(ov);
+}
+
+function showPasteImport() {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;';
+  ov.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="color:#c9ff47;font-weight:700;font-size:15px;">Paste JSON to import</div>
+      <button onclick="this.closest('div[style]').remove()" style="background:#252525;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
+    </div>
+    <textarea id="_pasteTA" placeholder="Paste your exported JSON here..." style="flex:1;background:#151515;color:#fff;border:1px solid #333;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;resize:none;"></textarea>
+    <button onclick="doPasteImport()" style="background:#c9ff47;color:#000;border:none;padding:14px;border-radius:8px;font-weight:700;margin-top:10px;font-size:15px;cursor:pointer;">Import Data</button>`;
+  document.body.appendChild(ov);
+}
+
+async function doPasteImport() {
+  try {
+    const text = document.getElementById('_pasteTA').value.trim();
+    if (!text) { toast('Nothing pasted'); return; }
+    const d = JSON.parse(text);
+    if (!d.exercises || !d.workouts) throw 0;
+    const ok = await confirm2('Merge this data with current data?', 'Import');
+    if (!ok) return;
+    const wi = new Set(DB.workouts.map(w => w.id));
+    d.workouts.forEach(w => { if (!wi.has(w.id)) DB.workouts.push(w); });
+    Object.entries(d.exercises).forEach(([cat,exs]) => {
+      if (!DB.exercises[cat]) DB.exercises[cat] = [];
+      const ei = new Set(DB.exercises[cat].map(e => e.id));
+      exs.forEach(ex => { if (!ei.has(ex.id)) DB.exercises[cat].push(ex); });
+    });
+    if (d.bodyWeights) {
+      const bi = new Set(DB.bodyWeights.map(e => e.id));
+      d.bodyWeights.forEach(e => { if (!bi.has(e.id)) DB.bodyWeights.push(e); });
+    }
+    if (d.splits) DB.splits = d.splits;
+    if (d.bwGoal) DB.bwGoal = d.bwGoal;
+    saveDB(); updateStreak(); renderSidebar();
+    document.querySelectorAll('div[style*="z-index:9999"]').forEach(el => el.remove());
+    toast('Imported!');
+  } catch { toast('Import failed — check the pasted text'); }
+}
+
 async function importData(e) {
   const file = e.target.files[0]; if (!file) return;
   const r = new FileReader();

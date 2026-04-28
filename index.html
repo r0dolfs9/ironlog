@@ -42,7 +42,9 @@
   <div class="sb-footer">
     <button class="sb-ftn sb-prof" id="profBtn" onclick="showProfilePicker()">👤 Profile</button>
     <button class="sb-ftn" onclick="exportData()">&#8595; Export JSON</button>
+    <button class="sb-ftn" onclick="showDataText()">&#8597; Show JSON (copy)</button>
     <button class="sb-ftn" onclick="document.getElementById('impF').click()">&#8593; Import JSON</button>
+    <button class="sb-ftn" onclick="showPasteImport()">&#8593; Paste JSON</button>
     <input type="file" id="impF" accept=".json" style="display:none" onchange="importData(event)">
     <button class="sb-ftn sb-rest-toggle" id="restToggleBtn" onclick="toggleRestTimer()">&#9201; Rest Timer: ON</button>
     <div class="sb-streak" id="streakBadge">No streak yet</div>
