@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronLog Data Extractor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0c0c0c; color: #f0f0f0; font-family: sans-serif; padding: 20px; min-height: 100vh; }
+  h1 { color: #c9ff47; font-size: 20px; margin-bottom: 6px; }
+  p  { color: #888; font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+  button { width: 100%; background: #c9ff47; color: #000; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 12px; }
+  textarea { width: 100%; height: 50vh; background: #151515; color: #fff; border: 1px solid #333; border-radius: 10px; padding: 12px; font-size: 11px; font-family: monospace; resize: none; }
+  .status { color: #c9ff47; font-size: 13px; margin-bottom: 10px; }
+  .error  { color: #ff5c38; font-size: 13px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<h1>IronLog Data Extractor</h1>
+<p>Tap the button below. If your data appears in the box, tap Copy and then import it in the new app.</p>
+
+<button onclick="extract()">Read My Data</button>
+<div id="status"></div>
+<textarea id="out" placeholder="Your data will appear here..." readonly onclick="this.select()"></textarea>
+<button onclick="copyData()" style="background:#252525;color:#fff;margin-top:10px;">Copy to Clipboard</button>
+
+<script>
+function extract() {
+  const st = document.getElementById('status');
+  const out = document.getElementById('out');
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('il4_')) keys.push(k);
+  }
+  if (keys.length === 0) {
+    st.className = 'error';
+    st.textContent = 'No IronLog data found. Make sure you open this file in the same HTML Viewer app as your workout data.';
+    return;
+  }
+  // Use the default/active profile key
+  const active = localStorage.getItem('il4_active');
+  const dbKey = 'il4_' + (active || '_default');
+  const raw = localStorage.getItem(dbKey) || localStorage.getItem(keys[0]);
+  if (!raw) {
+    st.className = 'error';
+    st.textContent = 'Found keys but could not read data: ' + keys.join(', ');
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    const workouts = parsed.workouts ? parsed.workouts.length : 0;
+    st.className = 'status';
+    st.textContent = 'Found ' + workouts + ' workouts. Select all text below and copy it.';
+    out.value = raw;
+    out.select();
+  } catch(e) {
+    st.className = 'error';
+    st.textContent = 'Data found but could not parse it.';
+  }
+}
+
+function copyData() {
+  const out = document.getElementById('out');
+  if (!out.value) { alert('Extract data first'); return; }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(out.value).then(() => alert('Copied! Now open the new app and use Paste JSON.')).catch(() => {
+      out.select();
+      alert('Auto-copy failed. Tap the text box above, Select All, then Copy manually.');
+    });
+  } else {
+    out.select();
+    alert('Tap the text box, Select All, then Copy.');
+  }
+}
+</script>
+</body>
+</html>

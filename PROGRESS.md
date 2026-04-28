@@ -145,21 +145,24 @@ All bugs and UX fixes shipped across 5 commits on master:
 
 ## Session Log
 
-### 2026-04-28 — Phase 2 PWA foundation committed + pushed
+### 2026-04-28 — Phase 2 PWA fully shipped
 
 DONE:
 - manifest.json — standalone display, portrait lock, #0c0c0c theme, icon refs
-- sw.js — cache-first service worker, caches index.html + style.css + app.js + Chart.js CDN
-- icons/generate-icons.html — open in browser to download icon-192.png + icon-512.png
-- index.html updated — manifest link, apple-touch-icon, theme-color meta, SW registration
-- Pushed to GitHub (commit 431385e)
+- sw.js — cache-first service worker, caches all app assets + Chart.js CDN
+- icons/icon-192.png + icon-512.png — generated and pushed
+- index.html — manifest link, apple-touch-icon, theme-color meta, SW registration
+- GitHub Pages enabled on master/root → app live at r0dolfs9.github.io/ironlog
+- "Show JSON (copy)" + "Paste JSON" buttons added to sidebar (clipboard-based transfer)
+- data-extractor.html — standalone file to extract localStorage from HTML Viewer app
 
-NEXT STEPS (do in order):
-1. Open icons/generate-icons.html in browser → download both PNGs into icons/ folder
-2. Go to github.com/r0dolfs9/ironlog → Settings → Pages → master / root → Save
-3. Commit + push the two PNG icons
-4. Wait ~60s → open r0dolfs9.github.io/ironlog on phone
-5. Android: "Add to Home Screen" prompt in Chrome; iPhone: Share → Add to Home Screen
+NEXT STEPS:
+1. Transfer data-extractor.html to iPhone via AirDrop/email
+2. Open in same HTML Viewer app → tap "Read My Data" → copy JSON
+3. Open r0dolfs9.github.io/ironlog → Paste JSON → import
+4. Verify all workouts are there
+5. Install PWA: Safari → Share → Add to Home Screen
+6. Stop using the HTML Viewer app
 
 ### 2026-04-28 — Progress file created + GitHub repo audited
 - Read IRONLOG_PROJECT.md, CHANGES.md, NOTES.md, STATUS.md.txt
