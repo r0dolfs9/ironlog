@@ -4,25 +4,17 @@
 - **`IronLog v2.html`** — working source file (edit this one)
 - **`index.html`** — copy of v2 for GitHub Pages
 - **`sw.js`** — service worker (offline cache, bump `CACHE` const to force PWA reload)
-- **`manifest.json`** — PWA manifest (TODO — currently inline data: URL inside HTML)
+- **`manifest.json`** — PWA manifest (real file, not inline data: URL)
 - **`icon-192.png` / `icon-512.png`** — standard PWA icons (lime IL on dark)
 - **`icon-maskable-192.png` / `icon-maskable-512.png`** — maskable variants (full-bleed, 80% safe zone)
 - **`IronLog.html`** — v1 reference, do not edit
-- `uploads/` — original app + screenshots
+- **`IronLog v3 mockup.html`** — v3 redesign mockup (reference only)
+- **`v3-plan.md`** — v3 redesign spec
 
 ## How to publish to GitHub Pages
-- Account: **`r0dolfs9`**
-- Repo: `r0dolfs9.github.io/<reponame>` (whatever you named it)
-- Files that must be uploaded together to the repo root:
-  - `index.html`
-  - `sw.js`
-  - `manifest.json`
-  - `icon-192.png`
-  - `icon-512.png`
-  - `icon-maskable-192.png`
-  - `icon-maskable-512.png`
-- Workflow: download those files from this project, drop them into the repo (replacing existing), wait ~30s, hard-refresh the live URL.
-- After a deploy, on the phone: long-press the PWA → uninstall → reopen URL in Chrome → "Install app" should appear (now that manifest + icons are real files, not data: URLs).
+- Repo: **`github.com/r0dolfs9/ironlog`** → live at **`r0dolfs9.github.io/ironlog`**
+- Edit workflow: edit `IronLog v2.html` → copy to `index.html` → bump `CACHE` in `sw.js` → commit + push
+- After a deploy, on the phone: hard-refresh or reinstall PWA.
 
 ---
 
@@ -82,13 +74,20 @@
 - ✅ `visibilitychange` listener re-syncs UI + reacquires wake lock when returning from background.
 - ✅ `sw.js` cache bumped to `ironlog-v8` (covers manifest + new icons).
 
-### Still pending (round 2 leftover)
-- [ ] N2 — Notification on rest end (covered by the batch above)
+### Still pending
 - [ ] N7 — Markdown export for AI analysis (compile workouts + bw + notes → single .md)
 
 ---
 
-## Suggested next order
-1. Finish install + notification batch (this turn)
-2. Verify on a real Android home-screen install
-3. N7 (AI markdown export) — useful, isolated change
+## Next up
+1. N7 — Markdown export (isolated change, high value)
+2. Verify PWA install on real Android device after latest push
+3. v3 redesign — start Phase 1 (palette + fonts + bottom tabs) when ready
+
+## Session log
+
+### 2026-05-12 — Repo synced, old files cleaned
+- Cloned repo to `C:\Users\User\ironlog`
+- Synced all latest files from zip (IronLog v2.html, icons, manifest, sw.js v8, v3 mockup + plan)
+- Removed outdated files: `icons/` folder (old small icons), `CHANGES.md`, `IRONLOG_PROJECT.md`, `NOTES.md`, `STATUS.md.txt`
+- Committed + pushed — GitHub Pages now live with full v2 build
