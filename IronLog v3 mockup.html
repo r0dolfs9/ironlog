@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronLog v3 — Home mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:#000;color:#f5f1e8;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;gap:32px;flex-wrap:wrap}
+
+:root{
+  --bg:#0a0908;
+  --s1:#16140f;
+  --s2:#1f1c16;
+  --text:#f5f1e8;
+  --t2:#a8a195;
+  --t3:#6b6359;
+  --acc:#ff6b35;
+  --acc-soft:#ffb38a;
+  --danger:#d4332f;
+  --success:#7fb069;
+  --hair:rgba(245,241,232,0.08);
+  --hair-hi:rgba(245,241,232,0.16);
+  --glass:rgba(28,25,20,0.62);
+  --shadow:0 24px 48px -16px rgba(0,0,0,0.6);
+}
+
+/* ── Device bezel ───────────────────────────────────── */
+.device{
+  width:390px;height:844px;
+  background:var(--bg);
+  border-radius:54px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 50px 100px -20px rgba(0,0,0,0.8), 0 0 0 12px #1a1815, 0 0 0 13px #2a2620;
+}
+.device::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:300px;
+  background:
+    radial-gradient(80% 60% at 70% 0%, rgba(255,107,53,0.12), transparent 60%),
+    radial-gradient(60% 50% at 20% 10%, rgba(255,179,138,0.06), transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+.device::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(245,241,232,0.008) 0, rgba(245,241,232,0.008) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+  z-index:0;
+  mix-blend-mode:overlay;
+  opacity:0.6;
+}
+.screen{
+  position:relative;
+  height:100%;
+  overflow-y:auto;
+  z-index:1;
+  scroll-behavior:smooth;
+}
+.screen::-webkit-scrollbar{display:none}
+
+/* Notch (iPhone-ish dynamic island) */
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:120px;height:36px;background:#000;border-radius:20px;
+  z-index:50;
+}
+
+/* ── Status bar ─────────────────────────────────────── */
+.status{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 30px 0;
+  font-size:15px;font-weight:600;letter-spacing:-0.2px;
+  position:relative;z-index:2;
+}
+.status .right{display:flex;gap:6px;align-items:center}
+.icn{width:18px;height:11px;border:1.5px solid var(--text);border-radius:3px;position:relative}
+.icn::after{content:'';position:absolute;top:2px;left:1.5px;right:4px;bottom:2px;background:var(--text);border-radius:1px}
+.icn::before{content:'';position:absolute;right:-4px;top:3px;width:2px;height:5px;background:var(--text);border-radius:0 1px 1px 0}
+
+/* ── Header ─────────────────────────────────────────── */
+.hdr{
+  padding:50px 24px 14px;position:relative;z-index:2;
+}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.hdr-greet{
+  font-size:14px;color:var(--t2);font-weight:500;letter-spacing:0.1px;
+  text-transform:uppercase;letter-spacing:1.5px;font-size:11px;
+}
+.hdr-title{
+  font-family:'Instrument Serif',serif;
+  font-size:46px;font-weight:400;letter-spacing:-1px;line-height:1;
+  margin-top:8px;
+}
+.hdr-title em{font-style:italic;color:var(--acc-soft)}
+.hdr-date{
+  font-size:13px;color:var(--t2);margin-top:6px;
+  font-variant-numeric:tabular-nums;
+}
+.hdr-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg, var(--acc) 0%, var(--acc-soft) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:600;font-size:15px;color:#1a1208;
+  box-shadow:0 8px 20px -8px rgba(255,107,53,0.5);
+}
+
+/* ── Cards (glass base) ─────────────────────────────── */
+.cards{
+  padding:18px 18px 100px;display:flex;flex-direction:column;gap:14px;
+  position:relative;z-index:2;
+}
+.card{
+  background:var(--glass);
+  backdrop-filter:blur(24px) saturate(1.8);
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);
+  border-radius:22px;
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04);
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+}
+.card-lbl{
+  font-size:10px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;color:var(--t3);
+  margin-bottom:10px;
+}
+
+/* ── HERO: Today suggestion ─────────────────────────── */
+.today{
+  background:linear-gradient(155deg, #ff6b35 0%, #c44820 40%, #5a1e10 100%);
+  color:var(--text);padding:22px 22px 20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 30px 60px -20px rgba(255,107,53,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.today::before{
+  content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;
+  background:radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+  pointer-events:none;
+}
+.today::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-radial-gradient(circle at 30% 30%, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
+  mix-blend-mode:overlay;pointer-events:none;
+}
+.today-meta{
+  font-size:10px;font-weight:600;letter-spacing:2.5px;
+  text-transform:uppercase;color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;gap:6px;
+}
+.today-meta .dot{width:6px;height:6px;border-radius:50%;background:#ffe3a3;box-shadow:0 0 8px #ffe3a3}
+.today-name{
+  font-family:'Instrument Serif',serif;
+  font-size:54px;font-weight:400;letter-spacing:-1.5px;line-height:0.95;
+  margin:10px 0 16px;
+}
+.today-name em{font-style:italic;color:#ffe3a3}
+.today-list{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.today-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.12);
+  font-size:13px;
+}
+.today-row:last-child{border-bottom:none}
+.today-row-name{font-weight:500}
+.today-row-last{font-family:'Geist Mono',monospace;font-size:12px;color:rgba(255,255,255,0.75);letter-spacing:-0.2px}
+.today-cta{
+  background:rgba(255,255,255,0.95);color:#1a0e07;
+  border:none;border-radius:14px;padding:14px;width:100%;
+  font-family:'Geist',sans-serif;font-weight:600;font-size:15px;letter-spacing:-0.2px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 8px 24px -8px rgba(0,0,0,0.4);
+  cursor:pointer;
+}
+.today-cta svg{width:16px;height:16px}
+
+/* ── Stats grid (week + streak) ─────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat-card{padding:18px}
+.stat-num{
+  font-family:'Instrument Serif',serif;
+  font-size:46px;font-weight:400;letter-spacing:-1.5px;line-height:1;
+  margin:6px 0 4px;
+}
+.stat-num.compact{font-size:38px}
+.stat-num em{font-style:italic}
+.stat-unit{font-size:13px;color:var(--t2);font-family:'Geist Mono',monospace;margin-left:4px}
+.stat-delta{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;
+  font-family:'Geist Mono',monospace;
+  padding:3px 8px;border-radius:6px;
+  margin-top:4px;
+}
+.stat-delta.up{color:var(--success);background:rgba(127,176,105,0.12)}
+.stat-delta.dn{color:var(--danger);background:rgba(212,51,47,0.12)}
+.stat-delta.flat{color:var(--t2);background:rgba(168,161,149,0.1)}
+.stat-spark{margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:32px}
+.stat-spark .bar{
+  flex:1;background:var(--acc-soft);border-radius:2px 2px 0 0;opacity:0.85;
+}
+.stat-spark .bar.muted{background:var(--hair-hi);opacity:0.4}
+
+/* ── Streak dots ────────────────────────────────────── */
+.streak-row{display:flex;gap:5px;margin-top:12px}
+.streak-dot{
+  flex:1;aspect-ratio:1;border-radius:50%;
+  background:var(--hair);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--t3);font-family:'Geist Mono',monospace;
+}
+.streak-dot.lit{background:var(--acc);color:#1a0e07;box-shadow:0 0 12px rgba(255,107,53,0.5)}
+.streak-dot.today{box-shadow:0 0 0 2px var(--acc-soft);background:var(--acc);color:#1a0e07}
+
+/* ── BW card ────────────────────────────────────────── */
+.bw-card{padding:20px}
+.bw-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.bw-big{
+  font-family:'Instrument Serif',serif;
+  font-size:64px;font-weight:400;letter-spacing:-2px;line-height:0.9;
+}
+.bw-unit{font-size:18px;color:var(--t2);font-family:'Geist Mono',monospace;margin-left:4px;font-weight:400}
+.bw-svg{width:100%;height:60px;margin-top:8px}
+.bw-goal-bar{
+  margin-top:14px;height:6px;border-radius:3px;background:var(--hair);overflow:hidden;
+}
+.bw-goal-fill{height:100%;background:linear-gradient(90deg, var(--acc-soft), var(--acc));border-radius:3px}
+.bw-goal-txt{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:6px;font-family:'Geist Mono',monospace}
+
+/* ── Long lost card ─────────────────────────────────── */
+.lost-card{padding:20px}
+.lost-list{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.lost-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--hair);
+}
+.lost-row:last-child{border-bottom:none;padding-bottom:0}
+.lost-row:first-child{padding-top:4px}
+.lost-name{font-size:14px;font-weight:500}
+.lost-name-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:'Geist Mono',monospace}
+.lost-pill{
+  font-size:11px;font-family:'Geist Mono',monospace;
+  padding:5px 9px;border-radius:999px;
+  background:rgba(212,51,47,0.12);color:var(--danger);
+  font-weight:600;letter-spacing:-0.2px;
+}
+
+/* ── Bottom tab bar ─────────────────────────────────── */
+.tabs{
+  position:absolute;bottom:14px;left:14px;right:14px;
+  background:rgba(20,18,14,0.78);
+  backdrop-filter:blur(30px) saturate(1.8);
+  -webkit-backdrop-filter:blur(30px) saturate(1.8);
+  border-radius:24px;
+  box-shadow:0 24px 48px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:10px 6px 12px;
+  z-index:10;
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;border:none;background:none;color:var(--t3);
+  font-family:'Geist',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.2px;
+  cursor:pointer;border-radius:14px;
+  transition:color .2s;
+}
+.tab.active{color:var(--acc)}
+.tab svg{width:22px;height:22px;stroke-width:1.6}
+.tab.active svg{stroke-width:2}
+
+/* iPhone home indicator */
+.home-ind{
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;background:rgba(245,241,232,0.45);border-radius:3px;z-index:60;
+}
+
+/* ── Caption pane ───────────────────────────────────── */
+.caption{
+  max-width:380px;color:#a8a195;font-size:13px;line-height:1.7;
+  font-family:'Geist',sans-serif;
+}
+.caption h2{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;color:#f5f1e8;margin-bottom:12px;letter-spacing:-0.5px}
+.caption h2 em{color:#ff6b35;font-style:italic}
+.caption ul{padding-left:18px;margin-top:10px}
+.caption li{margin-bottom:6px}
+.caption code{font-family:'Geist Mono',monospace;font-size:12px;color:#ffb38a;background:rgba(255,179,138,0.08);padding:1px 6px;border-radius:4px}
+.caption .small{font-size:11px;color:#6b6359;margin-top:14px;letter-spacing:0.2px}
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="island"></div>
+
+  <div class="screen">
+    <!-- Status bar -->
+    <div class="status">
+      <span>9:41</span>
+      <div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 7.5L3 5.5L5 7.5M7 4.5L9 2.5L11 4.5M13 1.5L15 -0.5" stroke="#f5f1e8" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="#f5f1e8"><path d="M1 8h2v2H1zm3-2h2v4H4zm3-2h2v6H7zm3-2h2v8h-2zm3-2h2v10h-2z"/></svg>
+        <div class="icn"></div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+      <div class="hdr-row">
+        <div>
+          <div class="hdr-greet">Tuesday · Week 19</div>
+          <h1 class="hdr-title">Good <em>morning</em></h1>
+          <div class="hdr-date">May 13 — 8 day streak</div>
+        </div>
+        <div class="hdr-avatar">R</div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards">
+
+      <!-- HERO: Today's suggestion -->
+      <div class="card today">
+        <div class="today-meta">
+          <span class="dot"></span>
+          <span>Suggested · Least trained this week</span>
+        </div>
+        <h2 class="today-name">Push <em>day</em></h2>
+        <div class="today-list">
+          <div class="today-row">
+            <span class="today-row-name">Bench Press</span>
+            <span class="today-row-last">last 80kg · 4×8</span>
+          </div>
+          <div class="today-row">
+            <span class="today-row-name">Overhead Press</span>
+            <span class="today-row-last">last 50kg · 3×10</span>
+          </div>
+          <div class="today-row">
+            <span class="today-row-name">Incline Dumbbell</span>
+            <span class="today-row-last">last 30kg · 3×12</span>
+          </div>
+          <div class="today-row">
+            <span class="today-row-name">Tricep Pushdown</span>
+            <span class="today-row-last">last 35kg · 3×15</span>
+          </div>
+        </div>
+        <button class="today-cta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Start workout
+        </button>
+      </div>
+
+      <!-- Stats grid: This week + Streak -->
+      <div class="grid-2">
+        <div class="card stat-card">
+          <div class="card-lbl">This week</div>
+          <div class="stat-num compact">12<span class="stat-unit">.4k</span></div>
+          <div class="stat-delta up">↑ 8.4% vs last</div>
+          <div class="stat-spark">
+            <div class="bar muted" style="height:30%"></div>
+            <div class="bar" style="height:55%"></div>
+            <div class="bar muted" style="height:18%"></div>
+            <div class="bar" style="height:72%"></div>
+            <div class="bar" style="height:48%"></div>
+            <div class="bar" style="height:90%"></div>
+            <div class="bar muted" style="height:12%"></div>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="card-lbl">Streak</div>
+          <div class="stat-num compact">8<span class="stat-unit">days</span></div>
+          <div class="stat-delta flat">best · 14</div>
+          <div class="streak-row">
+            <div class="streak-dot lit">M</div>
+            <div class="streak-dot lit">T</div>
+            <div class="streak-dot lit">W</div>
+            <div class="streak-dot lit">T</div>
+            <div class="streak-dot lit">F</div>
+            <div class="streak-dot lit">S</div>
+            <div class="streak-dot today">S</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BW card -->
+      <div class="card bw-card">
+        <div class="card-lbl">Body weight</div>
+        <div class="bw-row">
+          <div>
+            <div class="bw-big">74.6<span class="bw-unit">kg</span></div>
+            <div class="stat-delta dn" style="margin-top:6px">↓ 0.8kg this month</div>
+          </div>
+          <svg class="bw-svg" style="width:160px" viewBox="0 0 160 60" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="bwg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff6b35" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#ff6b35" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,18 C20,10 30,30 50,28 C70,26 80,42 100,40 C120,38 140,32 160,36 L160,60 L0,60 Z" fill="url(#bwg)"/>
+            <path d="M0,18 C20,10 30,30 50,28 C70,26 80,42 100,40 C120,38 140,32 160,36" stroke="#ff6b35" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="bw-goal-bar"><div class="bw-goal-fill" style="width:62%"></div></div>
+        <div class="bw-goal-txt"><span>Goal · 72kg</span><span>2.6kg to go</span></div>
+      </div>
+
+      <!-- Long lost card -->
+      <div class="card lost-card">
+        <div class="card-lbl">Haven't trained in a while</div>
+        <div class="lost-list">
+          <div class="lost-row">
+            <div>
+              <div class="lost-name">Romanian Deadlift</div>
+              <div class="lost-name-sub">last · Apr 28</div>
+            </div>
+            <div class="lost-pill">15d ago</div>
+          </div>
+          <div class="lost-row">
+            <div>
+              <div class="lost-name">Lat Pulldown</div>
+              <div class="lost-name-sub">last · May 1</div>
+            </div>
+            <div class="lost-pill">12d ago</div>
+          </div>
+          <div class="lost-row">
+            <div>
+              <div class="lost-name">Calf Raise</div>
+              <div class="lost-name-sub">last · May 4</div>
+            </div>
+            <div class="lost-pill">9d ago</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <nav class="tabs">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
+      Home
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l1 14h10l1-14"/><path d="M4 6h16"/><path d="M9 6V3h6v3"/></svg>
+      Train
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+      Progress
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      History
+    </button>
+  </nav>
+
+  <div class="home-ind"></div>
+</div>
+
+<div class="caption">
+  <h2>IronLog <em>v3</em> — Home</h2>
+  <p>Warm dark · glassmorphism · editorial serif numbers. Bottom tabs replace the sidebar. Home is a scrollable dashboard built around <em>"what should I do today?"</em></p>
+  <ul>
+    <li><code>Suggested</code> · least-trained split this week, with last weights inline</li>
+    <li><code>This week</code> · weekly volume + delta vs last week + 7-day bars</li>
+    <li><code>Streak</code> · this week's days lit (today highlighted)</li>
+    <li><code>Body weight</code> · big serif number + 30d sparkline + goal bar</li>
+    <li><code>Haven't trained</code> · exercises last done >7d ago</li>
+  </ul>
+  <p class="small">Open <code>v3-plan.md</code> for the full IA + phase plan covering Train · Progress · History · BW · Records.</p>
+</div>
+
+</body>
+</html>

@@ -1,8 +1,13 @@
 // IronLog service worker
-const CACHE='ironlog-v1';
+const CACHE='ironlog-v8';
 const ASSETS=[
   './',
   './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap'
 ];
@@ -28,4 +33,15 @@ self.addEventListener('fetch',e=>{
       return cached||fetchPromise;
     })
   );
+});
+// Tap notification → focus existing window or open new one
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  e.waitUntil((async()=>{
+    const clientsArr=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const c of clientsArr){
+      if('focus' in c){return c.focus()}
+    }
+    if(self.clients.openWindow)return self.clients.openWindow('./');
+  })());
 });
