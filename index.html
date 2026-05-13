@@ -345,6 +345,18 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 .ex-list{padding:14px 14px 0;display:flex;flex-direction:column;gap:10px}
 
 /* ── Exercise card */
+/* ── Session Done section ─────────────────────────────────── */
+.done-section{margin:14px 14px 0;padding-top:14px;border-top:1px solid var(--border)}
+.done-section-lbl{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--success);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.done-section-lbl::before{content:'';display:block;width:6px;height:6px;border-radius:50%;background:var(--success)}
+.done-ex-card{background:rgba(127,176,105,0.06);border:1.5px solid rgba(127,176,105,0.2);
+  border-radius:var(--r-lg);padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:12px}
+.done-ex-check{width:22px;height:22px;border-radius:50%;background:var(--success);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#fff}
+.done-ex-name{font-size:14px;font-weight:600;color:var(--text)}
+.done-ex-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:'Geist Mono',monospace}
 .ex-card{
   background:var(--glass);
   backdrop-filter:blur(20px) saturate(1.5);
@@ -1624,6 +1636,8 @@ function loadDB(){
 function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
 let DB;
 let openCards={},setCounts={},addSheetCat=null,curSplit=null,cardioOpen=false,chartInst={};
+let _draftCache={}; // {exId: [{w,r,rpe},...]} persists across re-renders
+let _sessionDone=new Set(); // exIds saved this session — shown in Done section
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function cv(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
@@ -1882,7 +1896,8 @@ function exCard(ex,cat,col,inSplit){
   let sub='No sessions yet';
   if(last&&last.sets.length){const ls=last.sets[last.sets.length-1];sub=`Last: ${ls.reps||'?'}×${ls.weight||'0'}kg · ${fd(last.date)}`}
   const isOpen=!!openCards[ex.id];
-  return`<div class="ex-card" id="xc-${ex.id}" style="--pc:${col}">
+  const _isDone=_sessionDone.has(ex.id);
+  return`<div class="ex-card${_isDone?' ex-done-today':''}" id="xc-${ex.id}" style="--pc:${col};${_isDone?'display:none':''}">
     <div class="ex-head" onclick="toggleCard('${ex.id}','${cat}','${col}',${inSplit})">
       <div class="ex-bar" style="background:${col}"></div>
       <div class="ex-inf">
@@ -1910,20 +1925,18 @@ function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
   const ph_r=p?p.reps:'10';
   const ph_w=p?p.weight:(bwFill||'0');
   const rpeHtml=[6,7,8,9,10].map(v=>`<button class="sc3-rpe-pill${rpeVal==v?' sel':''}" onclick="sc3SetRpe('${exId}',${i},${v},this)" style="--pc:${col}">${v}</button>`).join('');
-  return`<div class="sc3-card${isDone?' sc3-done-card':''}" id="sc3-${exId}-${i}" style="--pc:${col}">
-    <div class="sc3-head">
-      <div class="sc3-num">Set ${i+1}</div>
-      <div class="sc3-done-btn${isDone?' on':''}" id="dk-${exId}-${i}" onclick="tDone('${exId}',${i})" role="button" aria-label="Mark done">✓</div>
-    </div>
+  // Note: no onchange/auto-timer, no checkmark button (fixes #3 and #5)
+  return`<div class="sc3-card" id="sc3-${exId}-${i}" style="--pc:${col}">
+    <div class="sc3-num">Set ${i+1}</div>
     <div class="sc3-inputs">
       <div class="sc3-input-grp">
         <div class="sc3-inp-lbl">Weight</div>
-        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_w}" value="${wv||''}" id="w-${exId}-${i}" onchange="onWeightEntry('${exId}',${i})" style="--pc:${col}">
+        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_w}" value="${wv||''}" id="w-${exId}-${i}" style="--pc:${col}" oninput="cacheDraft('${exId}',${i})">
         <div class="sc3-inp-unit">kg</div>
       </div>
       <div class="sc3-input-grp">
         <div class="sc3-inp-lbl">Reps</div>
-        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_r}" value="${rv||''}" id="r-${exId}-${i}" style="--pc:${col}">
+        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_r}" value="${rv||''}" id="r-${exId}-${i}" style="--pc:${col}" oninput="cacheDraft('${exId}',${i})">
         <div class="sc3-inp-unit">reps</div>
       </div>
     </div>
@@ -1941,8 +1954,19 @@ function sc3SetRpe(exId,i,val,btn){
   btn.classList.add('sel');
   const hiddenEl=document.getElementById('rpe-'+exId+'-'+i);
   if(hiddenEl)hiddenEl.value=val;
+  cacheDraft(exId,i);
   try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
 }
+function cacheDraft(exId,i){
+  if(!_draftCache[exId])_draftCache[exId]=[];
+  _draftCache[exId][i]={
+    w:document.getElementById(`w-${exId}-${i}`)?.value||'',
+    r:document.getElementById(`r-${exId}-${i}`)?.value||'',
+    rpe:document.getElementById(`rpe-${exId}-${i}`)?.value||''
+  };
+}
+function getDraft(exId,i){return _draftCache[exId]?.[i]||null;}
+function clearDraft(exId){delete _draftCache[exId];}
 function logForm(exId,cat,col,last){
   const n=setCounts[exId]||2;
   const ex=Object.values(DB.exercises).flat().find(e=>e.id===exId);
@@ -1963,8 +1987,11 @@ function logForm(exId,cat,col,last){
   let cards='';
   for(let i=0;i<n;i++){
     const p=last&&last.sets[i];
-    const bwV=bwFill&&!p?bwFill:'';
-    cards+=_sc3Card(exId,i,p,'',bwV,bwFill,false,col,'');
+    const draft=getDraft(exId,i);
+    const rv=draft?.r||'';
+    const wv=draft?.w||(bwFill&&!p?bwFill:'');
+    const rpeV=draft?.rpe||'';
+    cards+=_sc3Card(exId,i,p,rv,wv,bwFill,false,col,rpeV);
   }
   return`<div class="lf open" id="lf-${exId}">
     ${lb}
@@ -2010,7 +2037,7 @@ function chgSets(exId,cat,col,d){
     const wv=saved[i]!==undefined?saved[i].w:(bwFill&&!p?bwFill:'');
     const isDone=saved[i]?.done||false;
     const rpeV=saved[i]?.rpe||'';
-    rows+=_sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeV);
+    rows+=_sc3Card(exId,i,p,rv,wv,bwFill,false,col,rpeV);
   }
   stbEl.innerHTML=rows;
 }
@@ -2044,7 +2071,7 @@ function tDone(exId,i){
 function saveEx(exId,cat){
   const date=document.getElementById('ld-'+exId)?.value;if(!date){toast('Pick a date');return}
   const n=setCounts[exId]||2;const sets=[];
-  for(let i=0;i<n;i++){const rpe=document.getElementById(`rpe-${exId}-${i}`)?.value||'';sets.push({reps:document.getElementById(`r-${exId}-${i}`)?.value||'',weight:document.getElementById(`w-${exId}-${i}`)?.value||'',done:!!document.getElementById(`dk-${exId}-${i}`)?.classList.contains('on'),...(rpe?{rpe}:{})})}
+  for(let i=0;i<n;i++){const rpe=document.getElementById(`rpe-${exId}-${i}`)?.value||'';sets.push({reps:document.getElementById(`r-${exId}-${i}`)?.value||'',weight:document.getElementById(`w-${exId}-${i}`)?.value||'',done:true,...(rpe?{rpe}:{})})}
   const notes=document.getElementById('ln-'+exId)?.value||'';
   const ex=Object.values(DB.exercises).flat().find(e=>e.id===exId);
   const prevBest=Math.max(0,...DB.workouts.filter(w=>w.exId===exId).map(w=>maxWt(w.sets)));
@@ -2063,9 +2090,11 @@ function saveEx(exId,cat){
   }else{
     DB.workouts.push({id:uid(),exId,cat,name:ex?.name||'?',date,sets,notes,splitId:curSplit||null,sessionStart:DB.sessionStarts[sessKey],savedAt:nowTs});
   }
-  saveDB();openCards[exId]=false;delete setCounts[exId];cancelRest();
+  saveDB();openCards[exId]=false;delete setCounts[exId];clearDraft(exId);_sessionDone.add(exId);cancelRest();
   if(curSplit)renderSplit(curSplit,cc(cat));else renderMuscle(cat,cc(cat));
   updateStreak();
+  const _topWt=maxWt(sets);
+  startRest(_topWt>0?`${_topWt}kg saved — rest up`:'Rest');
   if(newBest>prevBest&&newBest>0){
     try{navigator.vibrate&&navigator.vibrate([40,30,80,30,40])}catch(_){}
     toast(`🏆 New PR! ${newBest}kg`);
@@ -2142,7 +2171,24 @@ function renderSplit(spId,col){
       <button class="sp-del-split-btn" onclick="deleteSplit('${spId}')">Delete this day</button>
     </div>`;
   }
-  pg.innerHTML=hdr+sectionsHtml+editTools;
+  // Build "Done this session" section
+  let doneSectionHtml='';
+  const doneExIds=[..._sessionDone].filter(eid=>
+    sp.sections.some(sec=>sec.type!=='cardio'&&(DB.exercises[sec.group]||[]).find(e=>e.id===eid))
+  );
+  if(doneExIds.length&&!editing){
+    const doneCards=doneExIds.map(eid=>{
+      const ex=Object.values(DB.exercises).flat().find(e=>e.id===eid);
+      if(!ex)return'';
+      const td=today();
+      const w=DB.workouts.filter(wk=>wk.exId===eid&&wk.date===td).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0))[0];
+      const setCount=w?w.sets.length:0;const topWt=w?maxWt(w.sets):0;
+      const sub=topWt?`${setCount} set${setCount!==1?'s':''} · top ${topWt}kg`:`${setCount} set${setCount!==1?'s':''}`;
+      return`<div class="done-ex-card"><div class="done-ex-check">✓</div><div><div class="done-ex-name">${ex.name}</div><div class="done-ex-sub">${sub}</div></div></div>`;
+    }).join('');
+    doneSectionHtml=`<div class="done-section"><div class="done-section-lbl">Done this session</div>${doneCards}</div>`;
+  }
+  pg.innerHTML=hdr+sectionsHtml+doneSectionHtml+editTools;
   if(editing)setTimeout(()=>document.getElementById(`spNameInp-${spId}`)?.focus(),50);
 }
 function enterEditMode(spId){splitEditing=spId;renderSplit(spId,'')}
@@ -3360,8 +3406,9 @@ function updateAvatar() {
     el.textContent = profInitials(p.name);
     el.style.background = `linear-gradient(135deg,${profColor(p.name)} 0%,${profColor(p.name)}bb 100%)`;
   } else {
-    el.textContent = '?';
-    el.style.background = 'linear-gradient(135deg,var(--acc) 0%,var(--acc-soft) 100%)';
+    el.textContent = '👤';
+    el.style.background = 'linear-gradient(135deg,var(--s3) 0%,var(--s4) 100%)';
+    el.style.fontSize = '16px';
   }
 }
 
@@ -3417,6 +3464,16 @@ function renderTrainTab() {
   renderSplit(first.id, cv(first.color));
 }
 
+function goToSplit(spId) {
+  // Called from Home suggestion card — activates the right split pill in Train
+  const btn = document.querySelector(`button[onclick*="selectTrainSplit('${spId}'"]`);
+  if (btn) {
+    btn.click();
+  } else {
+    const sp = DB.splits.find(s => s.id === spId);
+    if (sp) selectTrainSplit(spId, sp.name, sp.color, null);
+  }
+}
 function selectTrainSplit(spId, name, colorVar, btn) {
   curSplit = spId;
   document.querySelectorAll('#trainSplitTabs .subtab').forEach(b => {
@@ -3506,13 +3563,13 @@ function renderHome() {
   const month30 = new Date(now); month30.setDate(now.getDate()-30);
   const m30str = month30.toISOString().slice(0,10);
   const oldBW = bwSorted.find(b => b.date <= m30str);
-  const bwDelta = latBW && oldBW ? (parseNum(latBW.kg) - parseNum(oldBW.kg)) : null;
+  const bwDelta = latBW && oldBW ? (parseNum(latBW.weight) - parseNum(oldBW.weight)) : null;
 
   // Sparkline path for BW (last 30 entries)
   const bwPoints = bwSorted.slice(0,30).reverse();
   let bwSvg = '';
   if (bwPoints.length >= 2) {
-    const vals = bwPoints.map(b => parseNum(b.kg));
+    const vals = bwPoints.map(b => parseNum(b.weight));
     const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
     const W=160, H=48;
     const pts = vals.map((v,i) => `${(i/(vals.length-1)*W).toFixed(1)},${(H-(v-mn)/rng*(H-8)-4).toFixed(1)}`).join(' ');
@@ -3543,13 +3600,14 @@ function renderHome() {
       return `<div class="hc-today-row"><span class="hc-today-nm">${e.name}</span><span class="hc-today-last">${lastStr}</span></div>`;
     }).join('');
     const sub = suggestion.daysSince === null ? 'Never trained' : suggestion.daysSince === 0 ? 'Last trained today' : `Last trained ${suggestion.daysSince}d ago`;
-    return `<div class="hc-card hc-today" onclick="switchTab('train')">
+    const spId = suggestion.sp.id;
+    return `<div class="hc-card hc-today" onclick="switchTab('train');setTimeout(()=>goToSplit('${spId}'),80)">
       <div class="hc-today-meta"><span class="hc-today-dot"></span>Suggested · ${sub}</div>
       <div class="hc-today-name">${suggestion.sp.name.split(' ').length > 1
         ? suggestion.sp.name.replace(/(\S+)\s+(.+)/,'$1 <em>$2</em>')
         : suggestion.sp.name}</div>
       ${rows ? `<div class="hc-today-list">${rows}</div>` : ''}
-      <button class="hc-today-cta">
+      <button class="hc-today-cta" onclick="event.stopPropagation();switchTab('train');setTimeout(()=>goToSplit('${spId}'),80)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Start workout
       </button>
@@ -3572,17 +3630,17 @@ function renderHome() {
     return `<div class="hc-streak-dot${lit?' hc-streak-lit':''}${isToday?' hc-streak-today':''}">${lbl}</div>`;
   }).join('');
 
-  const bwCard = latBW ? `<div class="hc-card hc-bw" onclick="switchTab('progress');setTimeout(()=>switchProgressTab('bodyweight'),50)">
+  const bwCard = latBW && latBW.weight ? `<div class="hc-card hc-bw" onclick="switchTab('progress');setTimeout(()=>switchProgressTab('bodyweight'),50)">
     <div class="hc-lbl">Body Weight</div>
     <div class="hc-bw-row">
       <div>
-        <div class="hc-bw-num">${parseNum(latBW.kg).toFixed(1)}<span class="hc-bw-unit">kg</span></div>
+        <div class="hc-bw-num">${parseNum(latBW.weight).toFixed(1)}<span class="hc-bw-unit">kg</span></div>
         ${bwDelta !== null ? `<div class="hc-delta ${bwDelta<=0?'hc-delta-up':'hc-delta-dn'}">${bwDelta<=0?'↓':'↑'} ${Math.abs(bwDelta).toFixed(1)}kg this month</div>` : ''}
       </div>
       ${bwSvg}
     </div>
     ${DB.bwGoal ? (() => {
-      const g=DB.bwGoal, cur=parseNum(latBW.kg), goal=parseNum(g.kg);
+      const g=DB.bwGoal, cur=parseNum(latBW.weight), goal=parseNum(g.kg);
       const start=g.start?parseNum(g.start):cur, total=Math.abs(goal-start)||1;
       const done=Math.abs(cur-start), pct=Math.min(100,Math.round(done/total*100));
       const rem=Math.abs(cur-goal).toFixed(1);
