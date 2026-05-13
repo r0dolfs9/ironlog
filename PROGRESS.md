@@ -1,93 +1,117 @@
 # IronLog — Redesign Progress
 
 ## Current files
-- **`IronLog v2.html`** — working source file (edit this one)
-- **`index.html`** — copy of v2 for GitHub Pages
-- **`sw.js`** — service worker (offline cache, bump `CACHE` const to force PWA reload)
-- **`manifest.json`** — PWA manifest (real file, not inline data: URL)
-- **`icon-192.png` / `icon-512.png`** — standard PWA icons (lime IL on dark)
-- **`icon-maskable-192.png` / `icon-maskable-512.png`** — maskable variants (full-bleed, 80% safe zone)
-- **`IronLog.html`** — v1 reference, do not edit
-- **`IronLog v3 mockup.html`** — v3 redesign mockup (reference only)
-- **`v3-plan.md`** — v3 redesign spec
+- **`IronLog v2.html`** — v2 source (DO NOT EDIT — preserved as fallback)
+- **`IronLog v3.html`** — v3 WIP source ← **EDIT THIS ONE** (3791 lines)
+- **`index.html`** — currently v2 on GitHub Pages (swap with v3 when ready)
+- **`sw.js`** — service worker (bump `CACHE` const to `ironlog-v9` on next deploy)
+- **`manifest.json`** — PWA manifest
+- **`icon-192.png` / `icon-512.png`** — standard PWA icons
+- **`icon-maskable-192.png` / `icon-maskable-512.png`** — maskable variants
+- **`IronLog.html`** — v1 reference, do not touch
+- **`IronLog v3 mockup.html`** — Home screen design reference
+- **`v3-plan.md`** — original v3 IA spec
 
 ## How to publish to GitHub Pages
 - Repo: **`github.com/r0dolfs9/ironlog`** → live at **`r0dolfs9.github.io/ironlog`**
-- Edit workflow: edit `IronLog v2.html` → copy to `index.html` → bump `CACHE` in `sw.js` → commit + push
-- After a deploy, on the phone: hard-refresh or reinstall PWA.
+- When v3 is ready: copy `IronLog v3.html` → `index.html` → bump `CACHE` in `sw.js` to `ironlog-v9` → commit + push
 
 ---
 
-## Shipped ✅
+## v3 — 25-Step Transition Plan ✅ ALL COMPLETE
 
-### v2 core (14)
-1. ✅ `color-scheme: dark` meta
-2. ✅ Bounce + glow + 20ms vibrate on ✓ tap
-3. ✅ Rest timer tap-outside dismiss + 5-pulse end vibrate
-4. ✅ Trend dot on exercise cards
-5. ✅ BW chart above log form
-6. ✅ Empty sidebar state w/ CTA
-7. ✅ 7-day history strip (timezone-safe)
-8. ✅ Session duration tracking
-9. ✅ Personal Records page
-10. ✅ Finish summary redesign
-11. ✅ Fullscreen chart on Progress tap
-12. ✅ Chart skeleton shimmer
-13. ✅ Swipe-left-to-delete history
-14. ✅ Drag-to-reorder sections
+### Phase 1 — Foundation (Steps 1–5) ✅
+| # | Step | Status |
+|---|------|--------|
+| 1 | CSS Token Layer — warm palette (#0a0908 bg, #ff6b35 coral accent, #f5f1e8 text) | ✅ Done |
+| 2 | Typography — Instrument Serif + Geist + Geist Mono | ✅ Done |
+| 3 | Glass Card System — backdrop-filter blur(24px), 22px radii, warm shadows | ✅ Done |
+| 4 | Bottom Tab Bar — replaced sidebar with 4-tab bottom nav (Home/Train/Progress/History) | ✅ Done |
+| 5 | Screen Scaffold + Home Page — new shell, page-home default, all pages ported | ✅ Done |
 
-### Polish + Features (P1-P4, F1-F4)
-- P1 Records rows tappable → fullscreen chart
-- P2 Skeleton on BW + fullscreen chart
-- P3 Pointer-event drag fallback (iOS)
-- P4 `.page.active` opacity-stuck fix
-- F1 JSON export/import (sidebar footer)
-- F2 Rest timer presets (60/90/120/180s)
-- F3 Per-session note in summary modal
-- F4 PWA: inline manifest + iOS meta + sw.js
+### Phase 2 — Home Dashboard (Steps 6–10) ✅
+| # | Step | Status |
+|---|------|--------|
+| 6 | Today's Suggestion hero card (computed least-trained split, exercises, CTA) | ✅ Done |
+| 7 | This Week + Streak stat cards (volume delta, sparkline bars, 7-day dots) | ✅ Done |
+| 8 | Body Weight dashboard card (big serif, sparkline, goal bar) | ✅ Done |
+| 9 | Long Lost exercises card (>7 days, sorted by gap) | ✅ Done |
+| 10 | Empty states + first-run | 🟡 Partial — Train/History/PRs/BW done; Home first-run polish skipped |
 
-### Round 2 (N1, N3, N4, N5, B5, B6, B4-part1)
-- ✅ N1 Auto-rest on weight `onchange` — types weight → set marked ✓ + timer starts + buzz
-- ✅ N3 BW diff color hardened — case-insensitive, accepts `gain`/`up` and `lose`/`down`
-- ✅ N4 Same exercise + same date + same split → appends sets to existing entry (notes joined)
-- ✅ N5 BW exercise autofill — name match: pull-up / chin-up / push-up / dip / muscle-up / "bw" / "bodyweight" → pre-fills weight value+placeholder with latest `DB.bodyWeights`
-- ✅ B5 Removed misleading "Volume kg" stat from Recap
-- ✅ B6 BW +/- color flips with goal direction
-- ✅ B4-part1 Time-based rest timer (`restEndsAt`) survives iOS backgrounding
-- ✅ N6 Yellow trend dot for ±2% (maintained)
-- ✅ Icons generated: `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`
+### Phase 3 — Train Screen (Steps 11–15) ✅
+| # | Step | Status |
+|---|------|--------|
+| 11 | Train tab — horizontal split pill tabs, exercise list, empty state with CTA | ✅ Done |
+| 12 | Exercise card redesign — glass cards (22px radius) | ✅ Done |
+| 13 | Big-card per-set logging — glass sc3-card, 28px Geist Mono weight+reps inputs | ✅ Done — _sc3Card() + sc3-* CSS |
+| 14 | RPE input — pill row (6–10) per set, stored in DB | ✅ Done — sc3-rpe-pill + sc3SetRpe() |
+| 15 | Rest timer — glass bottom sheet, slideUp animation | ✅ Done |
 
----
+### Phase 4 — Progress / Records / History / BW (Steps 16–20) ✅
+| # | Step | Status |
+|---|------|--------|
+| 16 | Progress — weekly comparison header (Sessions / Volume / Sets + deltas) | ✅ Done — renderProgressStatsHeader() |
+| 17 | Muscle group radar chart (Chart.js radar, weekly frequency per muscle) | ✅ Done — renderProgressRadar() |
+| 18 | Records — gold/silver/bronze podium top-3 + grouped list | ✅ Done — podium-* CSS + renderPRs() |
+| 19 | History — 12-week heatmap + session timeline | ✅ Done — hm-* CSS grid |
+| 20 | Body weight page — 72px Instrument Serif, SVG sparkline, goal bar | ✅ Done — bw3-* CSS + renderBW() |
 
-## In flight 🔧
-
-### Install + background reliability (shipped this batch ✅)
-- ✅ Real `manifest.json` (icons + standalone + theme color) — Android Chrome's "Install app" prompt now fires.
-- ✅ Inline `data:` manifest removed from HTML head (was preventing installability).
-- ✅ `<link rel="apple-touch-icon" sizes="192/512">` for iOS home-screen icon.
-- ✅ Real PNG icons (192/512 + maskable variants) — home-screen icon now renders, no more blank/letter fallback.
-- ✅ Rest timer alarm via dedicated `setTimeout` (separate from the 250ms tick) — fires even after long background suspension.
-- ✅ Service worker `showNotification('Rest over — go! 💪', …)` when page is hidden + Web Notification when foregrounded.
-- ✅ `notificationclick` SW handler — tap notification focuses/opens the PWA.
-- ✅ One-time `Notification.requestPermission()` prompt on first rest start.
-- ✅ Wake Lock API during active rest — keeps screen on so the ring is visible.
-- ✅ `visibilitychange` listener re-syncs UI + reacquires wake lock when returning from background.
-- ✅ `sw.js` cache bumped to `ironlog-v8` (covers manifest + new icons).
-
-### Still pending
-- [ ] N7 — Markdown export for AI analysis (compile workouts + bw + notes → single .md)
+### Phase 5 — Polish (Steps 21–25) ✅
+| # | Step | Status |
+|---|------|--------|
+| 21 | Recap redesign — 2×2 glass stat grid, insight line, highlights, BW card | ✅ Done — rc3-* CSS |
+| 22 | Tab transition animations — directional slide, spring cubic-bezier | ✅ Done — tabSlideIn/Out keyframes |
+| 23 | Empty states — warm art circles, Instrument Serif titles, CTA buttons | ✅ Done — empty-state-art + empty-state-btn |
+| 24 | Haptics — tab (8ms), save (15ms), PR ([40,30,80,30,40]), rest alarm, RPE tap | ✅ Done |
+| 25 | N7 Markdown export for AI analysis | ✅ Done — exportMarkdown() in Settings |
 
 ---
 
-## Next up
-1. N7 — Markdown export (isolated change, high value)
-2. Verify PWA install on real Android device after latest push
-3. v3 redesign — start Phase 1 (palette + fonts + bottom tabs) when ready
+## Deploy checklist
+
+### Browser verification (do first — v3 not yet on GitHub Pages)
+- [ ] Home: 5 dashboard cards load (or warm empty states)
+- [ ] Train: split pills + exercise list; tap exercise → sc3 big-card set logging
+- [ ] Set card: big weight + reps inputs, RPE pills 6–10, done button
+- [ ] Save set → rest timer slides up as glass bottom sheet
+- [ ] PR save → triple-pulse haptic + 🏆 toast
+- [ ] Progress → Stats: comparison header + radar chart
+- [ ] Progress → Records: podium top-3 + grouped list
+- [ ] Progress → Body Weight: 72px serif + sparkline + goal bar
+- [ ] Progress → Recap: 2×2 glass stat grid + insight line
+- [ ] History: 12-week heatmap + session timeline
+- [ ] Settings gear: all 6 rows (profile, rest toggle+duration, export, import, AI export, new day)
+- [ ] AI Markdown export → downloads `.md` file
+- [ ] Tab switches slide directionally with spring feel
+- [ ] No JS console errors
+
+### Deploy steps
+1. Run browser verification checklist above
+2. `cp "IronLog v3.html" index.html`
+3. In `sw.js` bump `CACHE` const to `ironlog-v9`
+4. `git add -A && git commit -m "v3: full redesign — all 25 steps" && git push`
+
+---
 
 ## Session log
 
-### 2026-05-12 — Repo synced, old files cleaned
-- Cloned repo to `C:\Users\User\ironlog`
-- Synced all latest files from zip (IronLog v2.html, icons, manifest, sw.js v8, v3 mockup + plan)
-- Removed outdated files: `icons/` folder (old small icons), `CHANGES.md`, `IRONLOG_PROJECT.md`, `NOTES.md`, `STATUS.md.txt`
-- Committed + pushed — GitHub Pages now live with full v2 build
+### 2026-05-12
+- Cloned repo, synced files, pushed v2 to GitHub Pages
+
+### 2026-05-13 — All 25 steps complete (3791 lines)
+- Steps 1–12: token layer, typography, glass cards, bottom tabs, scaffold, Home dashboard, Train tab
+- Step 13: Big-card set logging — `_sc3Card()` helper, `.sc3-list` container, 28px Geist Mono inputs; `chgSets()` and `logForm()` both use the helper; all input IDs unchanged so `saveEx()` required zero changes
+- Step 14: RPE pills (6/7/8/9/10) per set card; `sc3SetRpe()` writes to hidden input; `saveEx()` appends `rpe` to set object if present; fully backward-compatible
+- Step 15: Rest timer → glass bottom sheet with `slideUp` keyframe
+- Step 16: Progress comparison header — Sessions / Volume / Sets with period deltas
+- Step 17: Muscle radar chart — Chart.js radar type, weekly frequency per muscle group
+- Step 18: Records podium — gold/silver/bronze top-3 cards, center-left-right layout
+- Step 19: 12-week GitHub-style heatmap injected above history list
+- Step 20: BW hero — 72px Instrument Serif, SVG sparkline, goal progress bar
+- Step 21: Recap v3 — 2×2 glass stat grid (Workouts/Volume/Sets/PRs), auto-insight line, highlights, BW delta card
+- Step 22: Directional tab transitions — spring `cubic-bezier(0.34,1.56,0.64,1)`, direction based on `_TAB_ORDER` index
+- Step 23: Empty states upgraded — `.empty-state-art` warm circles, Instrument Serif titles, CTA buttons with coral accent on History/Train/PRs/BW
+- Step 24: Haptics audit — tab switch 8ms, set save 15ms, PR [40,30,80,30,40], rest alarm [200,100,200,100,200], RPE tap 8ms
+- Step 25: `exportMarkdown()` — structured `.md` with summary, all PRs, 8-week volume by muscle, last 20 sessions, BW log; accessible from Settings sheet
+- Fixed `renderRecap()` bug (was targeting non-existent `page-recap`)
+- Fixed `closeSheet()` to remove settings body and restore sheet state
