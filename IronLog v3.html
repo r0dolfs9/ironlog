@@ -1936,7 +1936,7 @@ function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
       </div>
       <div class="sc3-input-grp">
         <div class="sc3-inp-lbl">Reps</div>
-        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_r}" value="${rv||''}" id="r-${exId}-${i}" style="--pc:${col}" oninput="cacheDraft('${exId}',${i})">
+        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_r}" value="${rv||''}" id="r-${exId}-${i}" style="--pc:${col}" oninput="cacheDraft('${exId}',${i})" onblur="tryStartRest('${exId}',${i})">
         <div class="sc3-inp-unit">reps</div>
       </div>
     </div>
@@ -1967,6 +1967,15 @@ function cacheDraft(exId,i){
 }
 function getDraft(exId,i){return _draftCache[exId]?.[i]||null;}
 function clearDraft(exId){delete _draftCache[exId];}
+function tryStartRest(exId,i){
+  const w=parseNum(document.getElementById(`w-${exId}-${i}`)?.value);
+  const r=parseNum(document.getElementById(`r-${exId}-${i}`)?.value);
+  if(w>0||r>0){
+    cacheDraft(exId,i);
+    startRest(w>0?`${r>0?r+' reps @ ':''}${w}kg — beat it next set`:'Rest');
+    try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}
+  }
+}
 function logForm(exId,cat,col,last){
   const n=setCounts[exId]||2;
   const ex=Object.values(DB.exercises).flat().find(e=>e.id===exId);
@@ -2093,8 +2102,6 @@ function saveEx(exId,cat){
   saveDB();openCards[exId]=false;delete setCounts[exId];clearDraft(exId);_sessionDone.add(exId);cancelRest();
   if(curSplit)renderSplit(curSplit,cc(cat));else renderMuscle(cat,cc(cat));
   updateStreak();
-  const _topWt=maxWt(sets);
-  startRest(_topWt>0?`${_topWt}kg saved — rest up`:'Rest');
   if(newBest>prevBest&&newBest>0){
     try{navigator.vibrate&&navigator.vibrate([40,30,80,30,40])}catch(_){}
     toast(`🏆 New PR! ${newBest}kg`);
