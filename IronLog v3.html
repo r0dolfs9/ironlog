@@ -1855,6 +1855,78 @@ document.addEventListener('input',e=>{
     if(replaced!==el.value){el.value=replaced;try{el.setSelectionRange(pos,pos)}catch(_){}}
   }
 });
+// ── Gesture controls ──────────────────────────────────────────────────────────
+(function(){
+  let _gs=null; // active gesture state
+  document.addEventListener('pointerdown',function(e){
+    const wheel=e.target.closest('.sc3-wheel');
+    const slider=e.target.closest('.sc3-rpe-slider');
+    if(!wheel&&!slider)return;
+    // Don't start gesture if tapping the edit input itself
+    if(e.target.classList.contains('sc3-inp-edit'))return;
+    e.preventDefault();
+    if(wheel){
+      const exId=wheel.dataset.exid;const si=+wheel.dataset.setidx;
+      const inp=document.getElementById('w-'+exId+'-'+si);
+      const startVal=parseNum(inp?.value)||0;
+      _gs={type:'wheel',exId,si,startY:e.clientY,startVal,lastTicks:0,moved:false};
+      try{wheel.setPointerCapture(e.pointerId)}catch(_){}
+    } else {
+      const exId=slider.dataset.exid;const si=+slider.dataset.setidx;
+      const track=slider.querySelector('.sc3-rpe-track');
+      const rect=track.getBoundingClientRect();
+      const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+      const val=Math.round(pct*4+6);
+      _gs={type:'rpe',exId,si,lastVal:val};
+      sc3RpeSliderUpdate(exId,si,val);
+      try{slider.setPointerCapture(e.pointerId)}catch(_){}
+    }
+  });
+  document.addEventListener('pointermove',function(e){
+    if(!_gs)return;
+    if(_gs.type==='wheel'){
+      const dy=_gs.startY-e.clientY; // up = positive = increase
+      const ticks=Math.floor(Math.abs(dy)/28)*(dy<0?-1:1);
+      if(ticks!==_gs.lastTicks){
+        const diff=ticks-_gs.lastTicks;_gs.lastTicks=ticks;
+        const inp=document.getElementById('w-'+_gs.exId+'-'+_gs.si);
+        const valSpan=document.getElementById('wv-'+_gs.exId+'-'+_gs.si);
+        if(!inp)return;
+        let cur=parseNum(inp.value);
+        if(isNaN(cur)||cur<0)cur=_gs.startVal;
+        const next=Math.max(0,Math.min(500,Math.round((cur+diff*2.5)*10)/10));
+        inp.value=next;
+        if(valSpan)valSpan.textContent=next;
+        try{navigator.vibrate&&navigator.vibrate(6)}catch(_){}
+      }
+      if(Math.abs(_gs.startY-e.clientY)>6)_gs.moved=true;
+    } else {
+      const slider=document.getElementById('rs-'+_gs.exId+'-'+_gs.si);
+      if(!slider)return;
+      const track=slider.querySelector('.sc3-rpe-track');
+      const rect=track.getBoundingClientRect();
+      const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+      const val=Math.round(pct*4+6);
+      if(val!==_gs.lastVal){
+        _gs.lastVal=val;
+        sc3RpeSliderUpdate(_gs.exId,_gs.si,val,true); // skipHaptic=true, fire manually
+        try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+      }
+    }
+  });
+  document.addEventListener('pointerup',function(e){
+    if(!_gs)return;
+    if(_gs.type==='wheel'){
+      if(!_gs.moved){
+        // Tap — enter type mode
+        sc3WheelEdit(_gs.exId,_gs.si);
+      } else {
+        cacheDraft(_gs.exId,_gs.si);
+      }
+    }
+    _gs=null;
+  });
+})();
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('open')}
