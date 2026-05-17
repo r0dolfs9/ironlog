@@ -1985,15 +1985,36 @@ function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
     <input type="hidden" id="rpe-${exId}-${i}" value="${rpeVal||''}">
   </div>`;
 }
-function sc3SetRpe(exId,i,val,btn){
-  const card=document.getElementById('sc3-'+exId+'-'+i);
-  if(!card)return;
-  card.querySelectorAll('.sc3-rpe-pill').forEach(b=>b.classList.remove('sel'));
-  btn.classList.add('sel');
-  const hiddenEl=document.getElementById('rpe-'+exId+'-'+i);
-  if(hiddenEl)hiddenEl.value=val;
+function sc3SetRpe(exId,i,val,_btn){sc3RpeSliderUpdate(exId,i,val);}
+function sc3RpeSliderUpdate(exId,i,val,skipHaptic){
+  const pct=(val-6)/4*100;
+  const fill=document.getElementById('rf-'+exId+'-'+i);
+  const thumb=document.getElementById('rt-'+exId+'-'+i);
+  const hidden=document.getElementById('rpe-'+exId+'-'+i);
+  if(fill)fill.style.width=pct+'%';
+  if(thumb){thumb.style.left=pct+'%';thumb.classList.add('has-val')}
+  if(hidden)hidden.value=val;
   cacheDraft(exId,i);
-  try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+  if(!skipHaptic)try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+}
+function sc3WheelEdit(exId,i){
+  const wd=document.getElementById('wd-'+exId+'-'+i);
+  const inp=document.getElementById('w-'+exId+'-'+i);
+  if(!wd||!inp)return;
+  wd.style.display='none';
+  inp.classList.add('active');
+  inp.focus();inp.select();
+}
+function sc3WheelBlur(exId,i){
+  const wd=document.getElementById('wd-'+exId+'-'+i);
+  const inp=document.getElementById('w-'+exId+'-'+i);
+  const valSpan=document.getElementById('wv-'+exId+'-'+i);
+  if(!wd||!inp||!valSpan)return;
+  const v=inp.value.replace(',','.').trim();
+  valSpan.textContent=v||inp.placeholder;
+  inp.classList.remove('active');
+  wd.style.display='';
+  cacheDraft(exId,i);
 }
 function cacheDraft(exId,i){
   if(!_draftCache[exId])_draftCache[exId]=[];
