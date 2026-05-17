@@ -1951,7 +1951,14 @@ function latestBodyweight(){
 function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
   const ph_r=p?p.reps:'10';
   const ph_w=p?p.weight:(bwFill||'0');
-  const rpeHtml=[6,7,8,9,10].map(v=>`<button class="sc3-rpe-pill${rpeVal==v?' sel':''}" onclick="sc3SetRpe('${exId}',${i},${v},this)" style="--pc:${col}">${v}</button>`).join('');
+  const rpeThumbPct=rpeVal?((rpeVal-6)/4*100):null;
+  const rpeHtml=`<div class="sc3-rpe-slider" id="rs-${exId}-${i}" data-exid="${exId}" data-setidx="${i}" style="--pc:${col}">
+      <div class="sc3-rpe-track">
+        <div class="sc3-rpe-fill" id="rf-${exId}-${i}" style="width:${rpeThumbPct!==null?rpeThumbPct+'%':'0%'}"></div>
+        <div class="sc3-rpe-thumb${rpeThumbPct!==null?' has-val':''}" id="rt-${exId}-${i}" style="left:${rpeThumbPct!==null?rpeThumbPct+'%':'0%'}"></div>
+      </div>
+      <div class="sc3-rpe-labels"><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+    </div>`;
   // Note: no onchange/auto-timer, no checkmark button (fixes #3 and #5)
   return`<div class="sc3-card" id="sc3-${exId}-${i}" style="--pc:${col}">
     <div class="sc3-num">Set ${i+1}</div>
@@ -1971,8 +1978,8 @@ function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
         <div class="sc3-inp-unit">reps</div>
       </div>
     </div>
-    <div class="sc3-rpe">
-      <div class="sc3-rpe-lbl">RPE</div>
+    <div class="sc3-rpe" style="align-items:flex-start">
+      <div class="sc3-rpe-lbl" style="padding-top:4px">RPE</div>
       ${rpeHtml}
     </div>
     <input type="hidden" id="rpe-${exId}-${i}" value="${rpeVal||''}">
