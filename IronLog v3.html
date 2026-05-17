@@ -1956,10 +1956,14 @@ function _sc3Card(exId,i,p,rv,wv,bwFill,isDone,col,rpeVal){
   return`<div class="sc3-card" id="sc3-${exId}-${i}" style="--pc:${col}">
     <div class="sc3-num">Set ${i+1}</div>
     <div class="sc3-inputs">
-      <div class="sc3-input-grp">
+      <div class="sc3-wheel" id="wh-${exId}-${i}" data-exid="${exId}" data-setidx="${i}" style="--pc:${col}">
         <div class="sc3-inp-lbl">Weight</div>
-        <input class="sc3-inp" type="text" inputmode="decimal" placeholder="${ph_w}" value="${wv||''}" id="w-${exId}-${i}" style="--pc:${col}" oninput="cacheDraft('${exId}',${i})">
-        <div class="sc3-inp-unit">kg</div>
+        <div class="sc3-wheel-display" id="wd-${exId}-${i}">
+          <span class="sc3-wheel-val" id="wv-${exId}-${i}">${wv||ph_w}</span>
+          <span class="sc3-wheel-unit">kg</span>
+          <span class="sc3-wheel-hint">↕</span>
+        </div>
+        <input class="sc3-inp-edit" type="text" inputmode="decimal" id="w-${exId}-${i}" value="${wv||''}" placeholder="${ph_w}" oninput="cacheDraft('${exId}',${i})" onblur="sc3WheelBlur('${exId}',${i})">
       </div>
       <div class="sc3-input-grp">
         <div class="sc3-inp-lbl">Reps</div>
