@@ -2,10 +2,13 @@
 
 ## Current files
 - **`IronLog v2.html`** — v2 source (DO NOT EDIT — preserved as fallback)
-- **`IronLog v3.html`** — v3 WIP source ← **EDIT THIS ONE** (3791 lines)
-- **`index.html`** — currently v2 on GitHub Pages (swap with v3 when ready)
-- **`sw.js`** — service worker (bump `CACHE` const to `ironlog-v9` on next deploy)
+- **`IronLog v3.html`** — v3 source ← **EDIT THIS ONE** (~4900 lines)
+- **`index.html`** — live on GitHub Pages (synced with v3)
+- **`sw.js`** — service worker — cache: `ironlog-v10`
 - **`manifest.json`** — PWA manifest
+
+## Live URL
+**r0dolfs9.github.io/ironlog** — currently on v3, gesture controls live ✅
 - **`icon-192.png` / `icon-512.png`** — standard PWA icons
 - **`icon-maskable-192.png` / `icon-maskable-512.png`** — maskable variants
 - **`IronLog.html`** — v1 reference, do not touch
@@ -115,3 +118,53 @@
 - Step 25: `exportMarkdown()` — structured `.md` with summary, all PRs, 8-week volume by muscle, last 20 sessions, BW log; accessible from Settings sheet
 - Fixed `renderRecap()` bug (was targeting non-existent `page-recap`)
 - Fixed `closeSheet()` to remove settings body and restore sheet state
+
+### 2026-05-17 — Gesture-first set logging (v16)
+
+**What was built:**
+- Weight wheel: drag up/down on the weight area scrubs ±2.5 kg per ~28px of movement
+  - Haptic tick (6ms) on each increment. Drag up = increase, drag down = decrease. Clamps 0–500.
+  - Tap (< 6px movement) → text input appears focused. Blur → display restores with new value.
+- RPE slider: horizontal drag track replaces the 5 pill buttons (6–10)
+  - Thumb snaps to each position with haptic (8ms). Hidden until first interaction.
+  - `sc3SetRpe` kept as a shim for backward compat.
+
+**Nothing broken:**
+- Reps input, rest timer (`tryStartRest` on blur), `saveEx`, `cacheDraft`, `getDraft`, `clearDraft`, `logForm`, `chgSets`, localStorage schema — all unchanged.
+- Hidden input IDs `w-{exId}-{i}` and `rpe-{exId}-{i}` preserved so all existing functions work.
+
+**Files:**
+- `IronLog v3.html` — gesture CSS + wheel HTML + RPE slider HTML + helper functions + event delegation
+- `index.html` — synced copy
+- `sw.js` — cache bumped to `ironlog-v10`
+- `docs/superpowers/specs/2026-05-17-gesture-set-logging-design.md` — design spec
+- `docs/superpowers/plans/2026-05-17-gesture-set-logging.md` — implementation plan
+
+**Score: 64 → ~68/100**
+
+---
+
+## What's next (priority order)
+
+1. **Motion pass** ← RECOMMENDED NEXT
+   - Spring animation when a set is saved (card scales 0.96 → 1.02 → 1 over 250ms)
+   - Rest timer slides up as a sheet BEHIND the set card (not modal, not page-replace)
+   - Number tickers on recap stats (count up on reveal)
+   - Stronger directional tab transitions (currently more fade than spring)
+
+2. **Custom SVG charts** — replace Chart.js line charts with inline SVG
+   - Thicker lines, area fill that fades to transparent
+   - Instrument Serif value labels, no gridlines, mono axis labels
+   - Removes the "stock app" tell
+
+3. **Cloud backup** — Sign in with Apple/Google → daily JSON to iCloud Drive / Google Drive
+   - Without this, one Safari cache wipe = total data loss
+
+4. **Swipe between sets** — pointer-event horizontal on sc3-card stack (save for last)
+
+### Polish items (smaller wins)
+- Haptic taxonomy: light tick / medium thud / heavy+double (PR) / success pattern (session done)
+- Plate calculator on weight input ("60kg = 20kg bar + 2×20")
+- 1RM estimates (Epley/Brzycki) on PR cards
+- Per-exercise default rest time (currently global)
+- Opt-in push notifications for training gaps
