@@ -455,6 +455,33 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
   transition:all .15s;text-align:center}
 .sc3-rpe-pill.sel{background:var(--acc-dim);border-color:var(--pc,var(--acc));
   color:var(--pc,var(--acc))}
+/* ── Gesture controls (weight wheel + RPE slider) ─────────────── */
+.sc3-wheel{position:relative;display:flex;flex-direction:column;gap:5px}
+.sc3-wheel-display{display:flex;align-items:baseline;justify-content:center;gap:4px;
+  background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);
+  padding:12px 10px;cursor:ns-resize;user-select:none;touch-action:none;
+  transition:border-color .15s;min-height:60px}
+.sc3-wheel-display:active{border-color:var(--pc,var(--acc))}
+.sc3-wheel-val{font-family:'Geist Mono',monospace;font-size:28px;color:var(--text)}
+.sc3-wheel-unit{font-size:11px;color:var(--t3)}
+.sc3-wheel-hint{font-size:13px;color:var(--t3);margin-left:2px;opacity:0.4}
+.sc3-inp-edit{position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:var(--s2);border:1.5px solid var(--pc,var(--acc));border-radius:var(--r-md);
+  font-family:'Geist Mono',monospace;font-size:28px;color:var(--text);
+  text-align:center;padding:12px 10px;box-sizing:border-box;z-index:2;outline:none}
+.sc3-inp-edit.active{opacity:1;pointer-events:auto}
+.sc3-rpe-slider{flex:1;display:flex;flex-direction:column;gap:6px;
+  touch-action:none;cursor:pointer;padding:2px 0}
+.sc3-rpe-track{position:relative;height:6px;background:var(--s3);border-radius:3px}
+.sc3-rpe-fill{position:absolute;left:0;top:0;height:100%;
+  background:var(--pc,var(--acc));border-radius:3px;transition:width .08s}
+.sc3-rpe-thumb{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;
+  background:var(--pc,var(--acc));border:2px solid var(--bg);
+  box-shadow:0 2px 8px rgba(0,0,0,0.4);transform:translate(-50%,-50%);
+  transition:left .08s;opacity:0}
+.sc3-rpe-thumb.has-val{opacity:1}
+.sc3-rpe-labels{display:flex;justify-content:space-between;
+  font-family:'Geist Mono',monospace;font-size:10px;color:var(--t3);padding:0 2px}
 .st{width:100%;border-collapse:collapse;margin-bottom:8px}
 .st th{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px;text-align:center}
 .st th:first-child{text-align:left;width:26px}
