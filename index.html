@@ -974,43 +974,6 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
   .sb-logo h1{font-size:18px}
 }
 
-/* ── Profile Picker */
-.prof-ov{
-  position:fixed;inset:0;background:var(--bg);z-index:1000;
-  display:none;align-items:center;justify-content:center;padding:24px
-}
-.prof-ov.open{display:flex;animation:fadeIn .2s ease}
-.prof-wrap{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center}
-.prof-logo{font-family:'Instrument Serif',serif;font-size:36px;font-weight:800;color:var(--acc);letter-spacing:-1.5px;margin-bottom:6px}
-.prof-sub{font-size:13px;color:var(--t2);margin-bottom:26px;text-align:center}
-.prof-list{width:100%;display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
-.prof-item{
-  display:flex;align-items:center;gap:14px;
-  padding:14px 16px;border-radius:var(--r-md);
-  background:var(--s1);border:1px solid var(--border);
-  cursor:pointer;transition:all .15s;width:100%;
-  font-family:'Geist',system-ui,sans-serif;text-align:left
-}
-.prof-item:hover{border-color:var(--border-hi);background:var(--s2)}
-.prof-item:active{border-color:var(--acc)}
-.prof-avatar{
-  width:38px;height:38px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Instrument Serif',serif;font-size:13px;font-weight:800;
-  color:#000;flex-shrink:0
-}
-.prof-name{font-size:15px;font-weight:600;flex:1;color:var(--text)}
-.prof-del{background:none;border:none;color:var(--t3);font-size:15px;cursor:pointer;padding:4px;flex-shrink:0;transition:color .15s}
-.prof-del:hover{color:var(--red)}
-.prof-new-btn{
-  width:100%;padding:15px;border-radius:var(--r-md);
-  background:none;border:1.5px dashed var(--border);
-  color:var(--t2);font-family:'Geist',system-ui,sans-serif;font-size:14px;font-weight:600;cursor:pointer;
-  transition:all .15s
-}
-.prof-new-btn:hover{border-color:var(--acc);color:var(--acc)}
-.prof-inp-wrap{width:100%;margin-bottom:12px}
-.sb-prof{justify-content:flex-start}
 ::-webkit-scrollbar{width:0}
 
 /* ── Edit mode */
@@ -1420,7 +1383,7 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
   <!-- Top context bar -->
   <div class="topbar" id="topbar">
     <div class="tb-title" id="tbTitle"><em>Good</em> morning</div>
-    <div id="tbAvatar" class="tb-avatar" onclick="showProfilePicker()" title="Profile">?</div>
+    <div id="tbAvatar" class="tb-avatar" onclick="showSettingsSheet()" title="Settings">👤</div>
     <button class="tb-gear" id="settingsBtn" onclick="showSettingsSheet()" title="Settings">&#9881;</button>
   </div>
 
@@ -1500,15 +1463,6 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- Profile Picker -->
-<div class="prof-ov" id="profOv">
-  <div class="prof-wrap">
-    <div class="prof-logo">IronLog</div>
-    <div class="prof-sub" id="profSub">Who's training?</div>
-    <div class="prof-list" id="profList"></div>
-    <button class="prof-new-btn" onclick="showNewProf()">+ New Profile</button>
-  </div>
-</div>
 
 <!-- Rest Timer Overlay — SVG Ring -->
 <div class="rest-ov" id="restOv" onclick="if(event.target===this)cancelRest()">
@@ -1634,15 +1588,10 @@ const DEF = {
   forearms:['Wrist Curl','Reverse Wrist Curl','Farmer Walk'],
 };
 
-// ── Profile Management ────────────────────────────────────────────────────────
-const PROF_KEY='il4_profiles', ACTIVE_KEY='il4_active';
-const PROF_COLORS=['#c9ff47','#47b8ff','#ff5c38','#a855f7','#ffd147','#38ffd4','#ff7eb3','#ff38a0'];
-function getProfiles(){return JSON.parse(localStorage.getItem(PROF_KEY)||'[]')}
-function saveProfiles(arr){localStorage.setItem(PROF_KEY,JSON.stringify(arr))}
-function getActiveProfile(){return localStorage.getItem(ACTIVE_KEY)||null}
-function dbKey(){return 'il4_'+(getActiveProfile()||'_default')}
-function profColor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))&0xffffff;return PROF_COLORS[Math.abs(h)%PROF_COLORS.length]}
-function profInitials(name){return name.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+// ── Profile stubs (multi-profile removed; single-profile only) ────────────────
+function getProfiles(){return[]}
+function getActiveProfile(){return null}
+function dbKey(){return 'il4__default'}
 
 // ── Database ──────────────────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -3422,48 +3371,6 @@ function importData(e){
   r.readAsText(f);e.target.value='';
 }
 
-// ── Profile ───────────────────────────────────────────────────────────────────
-function showProfilePicker(){
-  const profs=getProfiles();const active=getActiveProfile();
-  const profSub=document.getElementById('profSub');const profList=document.getElementById('profList');
-  if(profSub)profSub.textContent=profs.length?'Who\'s training?':'Create your profile';
-  if(profList){
-    profList.innerHTML=profs.map(p=>`
-      <button class="prof-item" onclick="switchProfile('${p.id}')">
-        <div class="prof-avatar" style="background:${profColor(p.name)}">${profInitials(p.name)}</div>
-        <div class="prof-name">${p.name}${p.id===active?' ✓':''}</div>
-        <button class="prof-del" onclick="event.stopPropagation();deleteProfile('${p.id}')">&#10005;</button>
-      </button>`).join('');
-  }
-  document.getElementById('profOv').classList.add('open');
-}
-function hideProfilePicker(){document.getElementById('profOv').classList.remove('open')}
-function showNewProf(){
-  const profList=document.getElementById('profList');
-  if(profList){
-    profList.innerHTML+=`<div class="prof-inp-wrap"><input class="sh-inp" id="newProfInp" placeholder="Your name" style="margin:0" onkeydown="if(event.key==='Enter')createProfile()"><div style="display:flex;gap:8px;margin-top:8px"><button class="sh-cancel" onclick="showProfilePicker()">Cancel</button><button class="sh-ok" onclick="createProfile()">Create</button></div></div>`;
-    setTimeout(()=>document.getElementById('newProfInp')?.focus(),100);
-  }
-}
-function createProfile(){
-  const name=document.getElementById('newProfInp')?.value.trim();if(!name){toast('Enter a name');return}
-  const profs=getProfiles();const id='prof-'+uid();
-  profs.push({id,name});saveProfiles(profs);switchProfile(id);
-}
-function switchProfile(id){
-  localStorage.setItem(ACTIVE_KEY,id);DB=loadDB();
-  renderSidebar();updateStreak();hideProfilePicker();
-  switchTab('home');
-  toast('Switched profile');
-}
-async function deleteProfile(id){
-  const ok=await confirm2('Delete this profile and all its data?','Delete');if(!ok)return;
-  const profs=getProfiles().filter(p=>p.id!==id);saveProfiles(profs);
-  localStorage.removeItem('il4_'+id);
-  if(getActiveProfile()===id){localStorage.removeItem(ACTIVE_KEY);DB=loadDB()}
-  showProfilePicker();toast('Profile deleted');
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // TONING v3 — NEW FUNCTIONS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3535,19 +3442,7 @@ function updateTopbar(tab) {
 }
 
 function updateAvatar() {
-  const el = document.getElementById('tbAvatar');
-  if (!el) return;
-  const active = getActiveProfile();
-  const profs = getProfiles();
-  const p = profs.find(x => x.id === active);
-  if (p) {
-    el.textContent = profInitials(p.name);
-    el.style.background = `linear-gradient(135deg,${profColor(p.name)} 0%,${profColor(p.name)}bb 100%)`;
-  } else {
-    el.textContent = '👤';
-    el.style.background = 'linear-gradient(135deg,var(--s3) 0%,var(--s4) 100%)';
-    el.style.fontSize = '16px';
-  }
+  // Single-profile: avatar is static, nothing to update
 }
 
 function switchProgressTab(sub, updateTab = true) {
@@ -3822,10 +3717,6 @@ function showSettingsSheet() {
   document.getElementById('shTitle').textContent = 'Settings';
   // Build settings sheet HTML into the existing sheet
   const restSecs = DB.settings?.restSecs || 90;
-  const profile = getActiveProfile ? getActiveProfile() : null;
-  const profs = getProfiles ? getProfiles() : [];
-  const activeProf = profs.find(p => p.id === profile) || profs[0];
-  const profName = activeProf ? activeProf.name : 'My Profile';
 
   document.getElementById('shInp').style.display = 'none';
   document.getElementById('shTitle').style.fontFamily = "'Instrument Serif', serif";
@@ -3841,13 +3732,6 @@ function showSettingsSheet() {
   body.id = 'settSheetBody';
   body.style.cssText = 'padding:0 18px 32px;display:flex;flex-direction:column;gap:0';
   body.innerHTML = `
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Profile</div>
-    <button onclick="closeSheet();setTimeout(showProfilePicker,100)" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;margin-bottom:14px;width:100%;text-align:left">
-      <div style="width:36px;height:36px;border-radius:50%;background:${activeProf?profColor(activeProf.name):'var(--acc)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">${activeProf?profInitials(activeProf.name):'?'}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text)">${profName}</div><div style="font-size:11px;color:var(--t3)">Tap to switch profile</div></div>
-      <div style="color:var(--t3);font-size:18px">›</div>
-    </button>
-
     <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Rest Timer</div>
     <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${on?'12px':'0'}">
@@ -3901,7 +3785,7 @@ function exportMarkdown() {
   const td = today();
   const lines = [];
   lines.push(`# IronLog Training Data`);
-  lines.push(`Exported: ${td}  |  Profile: ${(getProfiles().find(p=>p.id===getActiveProfile())||{name:'Unknown'}).name}\n`);
+  lines.push(`Exported: ${td}\n`);
 
   // --- Summary stats ---
   const allW = DB.workouts.filter(w=>w.cat!=='cardio');
