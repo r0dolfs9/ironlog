@@ -1555,6 +1555,16 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 
 <div class="toast" id="toast"></div>
 
+<div id="welcomeOv" style="position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box">
+  <div style="font-size:36px;font-weight:800;color:var(--text);margin-bottom:6px;font-family:'Syne',sans-serif;letter-spacing:-1px">IronLog</div>
+  <div style="font-size:14px;color:var(--t2);margin-bottom:52px;text-align:center">Your private strength tracker</div>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px">
+    <button onclick="document.getElementById('impF').click()" style="width:100%;padding:17px;border-radius:var(--r-lg);background:var(--acc);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Import backup</button>
+    <button onclick="startFresh()" style="width:100%;padding:17px;border-radius:var(--r-lg);background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px solid var(--border);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Start fresh</button>
+  </div>
+  <div style="margin-top:20px;font-size:11px;color:var(--t3);text-align:center">All data stays on your device</div>
+</div>
+
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const CAT_VAR = {
@@ -3365,6 +3375,7 @@ function importData(e){
       renderSidebar();updateStreak();
       const first=DB.splits[0];
       if(first)navTo(first.id,first.name,first.color);
+      dismissWelcome();
       toast('Import successful!');
     }catch{toast('Import failed — invalid file')}
   };
@@ -3865,7 +3876,23 @@ function exportMarkdown() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-// (init code already runs earlier in script — switchTab('home') called at load)
+function dismissWelcome(){
+  const ov=document.getElementById('welcomeOv');
+  if(ov)ov.style.display='none';
+}
+function startFresh(){
+  DB=loadDB();
+  renderSidebar();updateStreak();switchTab('home');
+  dismissWelcome();
+}
+(function(){
+  if(localStorage.getItem(dbKey())){
+    DB=loadDB();
+    renderSidebar();updateStreak();switchTab('home');
+    dismissWelcome();
+  }
+  // else: welcome overlay stays visible until user picks Import or Start fresh
+})();
 </script>
 </body>
 </html>
