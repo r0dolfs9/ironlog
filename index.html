@@ -1614,10 +1614,13 @@ function loadDB(){
     if(!d.splits)d.splits=DEFAULT_SPLITS.map(s=>JSON.parse(JSON.stringify(s)));
     if(!d.bwGoal)d.bwGoal=null;
     if(!d.settings)d.settings={restEnabled:true,restSecs:90};
+    ensureNutrition(d);
     return d;
   }
   const ex={};MUSCLES.forEach(m=>{ex[m]=DEF[m].map(n=>({id:uid(),name:n}))});
-  return{exercises:ex,workouts:[],bodyWeights:[],splits:DEFAULT_SPLITS.map(s=>JSON.parse(JSON.stringify(s))),bwGoal:null,settings:{restEnabled:true,restSecs:90}};
+  const fresh={exercises:ex,workouts:[],bodyWeights:[],splits:DEFAULT_SPLITS.map(s=>JSON.parse(JSON.stringify(s))),bwGoal:null,settings:{restEnabled:true,restSecs:90}};
+  ensureNutrition(fresh);
+  return fresh;
 }
 function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
 let DB;
@@ -1631,6 +1634,73 @@ function cc(cat){return cv(CAT_VAR[cat]||'--acc')}
 function today(){return new Date().toISOString().slice(0,10)}
 function fd(d){if(!d)return'';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
 function parseNum(v){return parseFloat(String(v||'').replace(',','.').trim())||0}
+function nRound(v){return Math.round((Number(v)||0)*10)/10}
+function nutritionDefaults(){
+  return {
+    targets:{
+      mode:'standard',
+      goal:'cut',
+      startDate:null,
+      weeklyLossRatePct:0.6,
+      trainingDay:{calories:2400,protein:180,carbs:260,fat:70},
+      restDay:{calories:2100,protein:180,carbs:185,fat:70},
+      history:[]
+    },
+    diary:{},
+    foods:[],
+    recipes:[],
+    checkins:[]
+  };
+}
+function ensureNutrition(db){
+  const base=nutritionDefaults();
+  if(!db.nutrition)db.nutrition=base;
+  if(!db.nutrition.targets)db.nutrition.targets=base.targets;
+  if(!db.nutrition.diary)db.nutrition.diary={};
+  if(!Array.isArray(db.nutrition.foods))db.nutrition.foods=[];
+  if(!Array.isArray(db.nutrition.recipes))db.nutrition.recipes=[];
+  if(!Array.isArray(db.nutrition.checkins))db.nutrition.checkins=[];
+  return db.nutrition;
+}
+function emptyNutritionDay(targetType='training'){
+  return {
+    targetType,
+    status:'open',
+    quality:'missing',
+    meals:[
+      {id:'breakfast',name:'Breakfast',items:[]},
+      {id:'lunch',name:'Lunch',items:[]},
+      {id:'dinner',name:'Dinner',items:[]},
+      {id:'snacks',name:'Snacks',items:[]}
+    ]
+  };
+}
+function nutritionDay(date=today()){
+  ensureNutrition(DB);
+  if(!DB.nutrition.diary[date])DB.nutrition.diary[date]=emptyNutritionDay();
+  return DB.nutrition.diary[date];
+}
+function nutritionTotals(day){
+  const t={calories:0,protein:0,carbs:0,fat:0};
+  (day.meals||[]).forEach(m=>(m.items||[]).forEach(it=>{
+    t.calories+=Number(it.calories)||0;
+    t.protein+=Number(it.protein)||0;
+    t.carbs+=Number(it.carbs)||0;
+    t.fat+=Number(it.fat)||0;
+  }));
+  return {calories:Math.round(t.calories),protein:nRound(t.protein),carbs:nRound(t.carbs),fat:nRound(t.fat)};
+}
+function nutritionTarget(day){
+  const n=ensureNutrition(DB);
+  return day.targetType==='rest'?n.targets.restDay:n.targets.trainingDay;
+}
+function nutritionQuality(day){
+  const t=nutritionTotals(day);
+  if(day.status==='complete')return 'complete';
+  if(t.calories===0)return 'missing';
+  if(t.calories<1200||t.protein<80)return 'likelyIncomplete';
+  return 'open';
+}
 function vol(sets){return sets.reduce((a,s)=>a+parseNum(s.reps)*parseNum(s.weight),0)}
 function maxWt(sets){return Math.max(0,...sets.map(s=>parseNum(s.weight)))}
 function toast(msg){
