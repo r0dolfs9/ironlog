@@ -62,6 +62,32 @@
   --shadow: 0 24px 48px -16px rgba(0,0,0,0.6);
   --ease:cubic-bezier(.4,0,.2,1);
 }
+html[data-theme="parchment"]{
+  --bg:#f7f3ea;--s1:#fffaf0;--s2:#eee6d8;--s3:#e2d7c8;--s4:#d5c8b8;
+  --glass:rgba(255,250,240,0.72);--border:rgba(55,40,25,0.12);--border-hi:rgba(55,40,25,0.22);
+  --text:#19140f;--t2:#6f6255;--t3:#9a8b7b;--acc:#c4451c;--acc-soft:#df7955;--acc-dim:rgba(196,69,28,0.12);--acc-glow:rgba(196,69,28,0.24);
+  --shadow:0 24px 48px -18px rgba(70,45,20,0.22);
+}
+html[data-theme="forest"]{
+  --bg:#0a0f0c;--s1:#121b15;--s2:#19241d;--s3:#223027;--s4:#2c3b30;
+  --glass:rgba(18,27,21,0.68);--border:rgba(235,245,232,0.08);--border-hi:rgba(235,245,232,0.16);
+  --text:#edf5ea;--t2:#a2ae9c;--t3:#687465;--acc:#7fb069;--acc-soft:#b7d49e;--acc-dim:rgba(127,176,105,0.14);--acc-glow:rgba(127,176,105,0.26);
+}
+html[data-theme="midnight"]{
+  --bg:#0a0d12;--s1:#111722;--s2:#182030;--s3:#202a3d;--s4:#2a354a;
+  --glass:rgba(17,23,34,0.68);--border:rgba(230,238,255,0.08);--border-hi:rgba(230,238,255,0.16);
+  --text:#eef4ff;--t2:#9ba8bb;--t3:#647085;--acc:#4c8bf5;--acc-soft:#92b8ff;--acc-dim:rgba(76,139,245,0.14);--acc-glow:rgba(76,139,245,0.26);
+}
+html[data-theme="plum"]{
+  --bg:#0e0a10;--s1:#19111d;--s2:#22182a;--s3:#2d2136;--s4:#382a42;
+  --glass:rgba(25,17,29,0.68);--border:rgba(245,230,255,0.08);--border-hi:rgba(245,230,255,0.16);
+  --text:#f6edfa;--t2:#b3a2bc;--t3:#76677f;--acc:#a855f7;--acc-soft:#cf9cff;--acc-dim:rgba(168,85,247,0.14);--acc-glow:rgba(168,85,247,0.26);
+}
+html[data-theme="mono"]{
+  --bg:#0a0a0a;--s1:#151515;--s2:#202020;--s3:#2a2a2a;--s4:#343434;
+  --glass:rgba(22,22,22,0.70);--border:rgba(245,245,245,0.09);--border-hi:rgba(245,245,245,0.18);
+  --text:#f5f5f5;--t2:#ababab;--t3:#707070;--acc:#f5f5f5;--acc-soft:#d4d4d4;--acc-dim:rgba(245,245,245,0.12);--acc-glow:rgba(245,245,245,0.22);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);overflow:hidden}
 body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
@@ -1678,6 +1704,25 @@ function nutritionDefaults(){
     checkins:[]
   };
 }
+const THEMES=[
+  {id:'ember',name:'Ember',bg:'#0a0908',acc:'#ff6b35'},
+  {id:'parchment',name:'Parchment',bg:'#f7f3ea',acc:'#c4451c'},
+  {id:'forest',name:'Forest',bg:'#0a0f0c',acc:'#7fb069'},
+  {id:'midnight',name:'Midnight',bg:'#0a0d12',acc:'#4c8bf5'},
+  {id:'plum',name:'Plum',bg:'#0e0a10',acc:'#a855f7'},
+  {id:'mono',name:'Mono',bg:'#0a0a0a',acc:'#f5f5f5'}
+];
+function getTheme(){try{return localStorage.getItem('il4_theme')||'ember'}catch(_){return'ember'}}
+function setTheme(id){
+  const valid=THEMES.some(t=>t.id===id)?id:'ember';
+  if(valid==='ember')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',valid);
+  try{localStorage.setItem('il4_theme',valid)}catch(_){}
+  const meta=document.querySelector?.('meta[name="theme-color"]');
+  const theme=THEMES.find(t=>t.id===valid)||THEMES[0];
+  if(meta)meta.setAttribute('content',theme.bg);
+}
+setTheme(getTheme());
 function ensureNutrition(db){
   const base=nutritionDefaults();
   if(!db.nutrition)db.nutrition=base;
@@ -1754,6 +1799,27 @@ function calcPer100FromEntry(item){
     fat:nRound(parseNum(item.fat)*factor)
   };
 }
+function recipePer100(recipe){
+  const cooked=parseNum(recipe.cookedWeightGrams);
+  const totals={calories:0,protein:0,carbs:0,fat:0};
+  (recipe.ingredients||[]).forEach(i=>{
+    totals.calories+=parseNum(i.calories);totals.protein+=parseNum(i.protein);totals.carbs+=parseNum(i.carbs);totals.fat+=parseNum(i.fat);
+  });
+  if(!cooked)return {calories:0,protein:0,carbs:0,fat:0};
+  const factor=100/cooked;
+  return {calories:Math.round(totals.calories*factor),protein:nRound(totals.protein*factor),carbs:nRound(totals.carbs*factor),fat:nRound(totals.fat*factor)};
+}
+function logRecipePortion(recipeId,grams,mealId='snacks',date=today()){
+  const recipe=ensureNutrition(DB).recipes.find(r=>r.id===recipeId&&!r.archived);
+  if(!recipe)return null;
+  const per=recipe.per100g||recipePer100(recipe);
+  const g=parseNum(grams),factor=g/100;
+  const item={type:'recipe',sourceId:recipe.id,name:recipe.name,grams:g,calories:Math.round(per.calories*factor),protein:nRound(per.protein*factor),carbs:nRound(per.carbs*factor),fat:nRound(per.fat*factor),snapshot:true};
+  const day=nutritionDay(date);
+  const meal=day.meals.find(m=>m.id===mealId)||day.meals[3];
+  meal.items.push(item);day.quality=nutritionQuality(day);
+  return item;
+}
 function nutritionWeekDates(end=today()){
   const dates=[];const d=new Date(end+'T00:00:00');
   for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);dates.push(x.toISOString().slice(0,10))}
@@ -1773,9 +1839,15 @@ function nutritionCoachSummary(){
     const first=parseNum(weights[0].weight),last=parseNum(weights[weights.length-1].weight);
     lines.push(`Scale trend: ${nRound(last-first)} kg across logged weigh-ins.`);
   }
-  if(confidence==='low')lines.push('Recommendation: finish more food logs before changing targets.');
-  else lines.push('Recommendation: keep targets unchanged until the weekly check-in has more history.');
-  return {confidence,lines};
+  let recommendation='Keep targets unchanged until the weekly check-in has more history.';
+  if(confidence==='low')recommendation='Finish more food logs before changing targets.';
+  else if(weights.length>=2){
+    const delta=parseNum(weights[weights.length-1].weight)-parseNum(weights[0].weight);
+    if(delta>0.1)recommendation='Weight is up across logged weigh-ins. If this persists with complete logs, reduce rest-day calories first.';
+    else if(delta<-1.0)recommendation='Weight is dropping quickly. Watch training performance before making another reduction.';
+  }
+  lines.push(`Recommendation: ${recommendation}`);
+  return {confidence,lines,recommendation};
 }
 function nutritionMarkdownLines(){
   ensureNutrition(DB);
@@ -4069,6 +4141,14 @@ function showSettingsSheet() {
         <span style="font-size:12px;color:var(--t2);flex:1">Duration</span>
         ${[60,90,120,180].map(s=>`<button onclick="DB.settings.restSecs=${s};saveDB();showSettingsSheet()" style="padding:5px 10px;border-radius:var(--r-pill);border:1.5px solid ${restSecs===s?'var(--acc)':'var(--border)'};background:${restSecs===s?'var(--acc-dim)':'transparent'};color:${restSecs===s?'var(--acc)':'var(--t2)'};font-size:11px;font-weight:600;cursor:pointer">${s}s</button>`).join('')}
       </div>` : ''}
+    </div>
+
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Theme</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      ${THEMES.map(t=>`<button onclick="setTheme('${jsa(t.id)}');showSettingsSheet()" style="display:flex;align-items:center;gap:8px;background:var(--glass);border:1.5px solid ${getTheme()===t.id?'var(--acc)':'var(--border)'};border-radius:var(--r-lg);padding:10px;cursor:pointer;color:var(--text)">
+        <span style="width:22px;height:22px;border-radius:50%;background:${t.bg};border:1px solid var(--border);position:relative;display:inline-block"><span style="position:absolute;right:2px;bottom:2px;width:8px;height:8px;border-radius:50%;background:${t.acc}"></span></span>
+        <span style="font-size:12px;font-weight:700">${esc(t.name)}</span>
+      </button>`).join('')}
     </div>
 
     <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Data</div>

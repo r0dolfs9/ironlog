@@ -18,9 +18,10 @@ const context = {
     removeItem(k){ store.delete(k); }
   },
   document: {
-    documentElement: {},
+    documentElement: { setAttribute(){}, removeAttribute(){} },
     addEventListener(){},
     createElement(){ return { click(){}, set href(v){ this._href = v; }, set download(v){ this._download = v; } }; },
+    querySelector(){ return null; },
     getElementById(){ return null; },
     querySelectorAll(){ return []; }
   },
