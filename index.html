@@ -720,6 +720,10 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 .nut-meal-name{font-size:14px;font-weight:700}
 .nut-meal-sub{font-size:11px;color:var(--t3);margin-top:2px}
 .nut-add{width:100%;border:0;border-radius:var(--r-md);padding:14px;background:var(--acc);color:#130b06;font-weight:800}
+.nut-secondary{width:100%;border:1.5px solid var(--border);border-radius:var(--r-md);padding:13px;background:var(--glass);color:var(--text);font-weight:800}
+.nut-recipe-row{background:var(--s2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.nut-recipe-row strong{font-size:13px}
+.nut-recipe-row span{font-size:11px;color:var(--t3)}
 .bw-row{display:flex;gap:8px;align-items:flex-end}
 .bw-field{flex:1}
 .bw-lbl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
@@ -1675,6 +1679,8 @@ function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
 let DB;
 let openCards={},setCounts={},addSheetCat=null,curSplit=null,cardioOpen=false,chartInst={};
 let _nutritionMealId='snacks';
+let _recipeDraft={ingredients:[]};
+let _recipePortionMealId='snacks';
 let _draftCache={}; // {exId: [{w,r,rpe},...]} persists across re-renders
 let _sessionDone=new Set(); // exIds saved this session — shown in Done section
 
@@ -1786,7 +1792,8 @@ function starterFoods(){
 }
 function foodLibrary(){
   const privateFoods=(ensureNutrition(DB).foods||[]).filter(f=>!f.archived);
-  return [...starterFoods(),...privateFoods];
+  const recipes=(ensureNutrition(DB).recipes||[]).filter(r=>!r.archived).map(r=>({id:r.id,name:r.name,type:'recipe',source:'recipe',per100g:r.per100g||recipePer100(r),serving:null,archived:false}));
+  return [...starterFoods(),...privateFoods,...recipes];
 }
 function calcPer100FromEntry(item){
   const grams=parseNum(item.grams);
@@ -1819,6 +1826,24 @@ function logRecipePortion(recipeId,grams,mealId='snacks',date=today()){
   const meal=day.meals.find(m=>m.id===mealId)||day.meals[3];
   meal.items.push(item);day.quality=nutritionQuality(day);
   return item;
+}
+function recipeDraftClear(){_recipeDraft={ingredients:[]};return _recipeDraft}
+function recipeDraftAddIngredient(item){
+  const ing={name:item.name||'Ingredient',grams:parseNum(item.grams),calories:Math.round(parseNum(item.calories)),protein:nRound(parseNum(item.protein)),carbs:nRound(parseNum(item.carbs)),fat:nRound(parseNum(item.fat)),snapshot:true};
+  _recipeDraft.ingredients.push(ing);return ing;
+}
+function recipeDraftRemove(idx){_recipeDraft.ingredients.splice(idx,1)}
+function recipeDraftTotals(){
+  const t={calories:0,protein:0,carbs:0,fat:0};
+  (_recipeDraft.ingredients||[]).forEach(i=>{t.calories+=parseNum(i.calories);t.protein+=parseNum(i.protein);t.carbs+=parseNum(i.carbs);t.fat+=parseNum(i.fat)});
+  return {calories:Math.round(t.calories),protein:nRound(t.protein),carbs:nRound(t.carbs),fat:nRound(t.fat)};
+}
+function createRecipeFromDraft(name,cookedWeightGrams){
+  const recipe={id:uid(),name:(name||'Recipe').trim()||'Recipe',ingredients:(_recipeDraft.ingredients||[]).map(i=>({...i})),cookedWeightGrams:parseNum(cookedWeightGrams),archived:false,updatedAt:today()};
+  recipe.per100g=recipePer100(recipe);
+  ensureNutrition(DB).recipes.push(recipe);
+  recipeDraftClear();
+  return recipe;
 }
 function nutritionWeekDates(end=today()){
   const dates=[];const d=new Date(end+'T00:00:00');
@@ -2791,6 +2816,7 @@ function closeSheet(){
   // Remove settings sheet body if present
   const sb=document.getElementById('settSheetBody');if(sb)sb.remove();
   const nb=document.getElementById('nutSheetBody');if(nb)nb.remove();
+  const rb=document.getElementById('recipeSheetBody');if(rb)rb.remove();
   // Restore title style
   const shTtl=document.getElementById('shTitle');
   if(shTtl){shTtl.style.fontFamily='';shTtl.style.fontSize='';}
@@ -3802,7 +3828,7 @@ function openNutritionAdd(mealId='snacks'){
   body.id='nutSheetBody';
   body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
   const foods=foodLibrary();
-  const chips=foods.map(f=>`<button class="nut-pill" style="text-align:left;color:var(--text);background:var(--glass);border-color:var(--border)" onclick="fillNutritionFood('${jsa(f.id)}')">${esc(f.name)}</button>`).join('');
+  const chips=foods.map(f=>`<button class="nut-pill" style="text-align:left;color:var(--text);background:var(--glass);border-color:var(--border)" onclick="${f.type==='recipe'?`openRecipePortionSheet('${jsa(f.id)}','${jsa(mealId)}')`:`fillNutritionFood('${jsa(f.id)}')`}">${esc(f.name)}</button>`).join('');
   body.innerHTML=`<input class="sh-inp" id="nfName" placeholder="Food name">
     <div class="cc-fields">
       <div class="ccfw"><div class="cfl">Grams</div><input class="cff" id="nfGrams" inputmode="decimal" placeholder="100"></div>
@@ -3816,6 +3842,7 @@ function openNutritionAdd(mealId='snacks'){
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)"><input type="checkbox" id="nfSave"> Save as private food</label>
     <div class="nut-kicker" style="margin:4px 0 0">Starter + saved foods</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">${chips}</div>
+    <button class="nut-secondary" onclick="openRecipeBuilder()">Create cooked-weight recipe</button>
     <button class="nut-add" onclick="saveNutritionFood()">Save food</button>`;
   const sheet=document.getElementById('addSheet');
   sheet.appendChild(body);
@@ -3831,6 +3858,75 @@ function fillNutritionFood(id){
   document.getElementById('nfProtein').value=f.per100g.protein;
   document.getElementById('nfCarbs').value=f.per100g.carbs;
   document.getElementById('nfFat').value=f.per100g.fat;
+}
+function openRecipeBuilder(){
+  document.getElementById('shTitle').textContent='Recipe builder';
+  document.getElementById('shInp').style.display='none';
+  const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
+  const oldRecipe=document.getElementById('recipeSheetBody');if(oldRecipe)oldRecipe.remove();
+  const acts=document.querySelector('#addSheet .sh-acts');if(acts)acts.style.display='none';
+  renderRecipeBuilderBody();
+  document.getElementById('addSheet').classList.add('open');document.getElementById('shBg').classList.add('open');
+}
+function renderRecipeBuilderBody(){
+  const old=document.getElementById('recipeSheetBody');if(old)old.remove();
+  const totals=recipeDraftTotals();
+  const rows=(_recipeDraft.ingredients||[]).map((i,idx)=>`<div class="nut-recipe-row"><div><strong>${esc(i.name)}</strong><br><span>${i.grams}g · ${i.calories} kcal · ${i.protein}P/${i.carbs}C/${i.fat}F</span></div><button class="mini" onclick="recipeDraftRemove(${idx});renderRecipeBuilderBody()">Remove</button></div>`).join('')||'<div class="nut-meal-sub">Add ingredients with grams and macros from the food label or starter foods.</div>';
+  const body=document.createElement('div');
+  body.id='recipeSheetBody';
+  body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
+  body.innerHTML=`<input class="sh-inp" id="nrName" placeholder="Recipe name" value="${esc(_recipeDraft.name||'')}">
+    <div class="nut-card" style="margin:0;padding:12px"><div class="nut-kicker">Ingredients</div><div style="display:flex;flex-direction:column;gap:8px">${rows}</div><div class="nut-meal-sub" style="margin-top:10px">Total: ${totals.calories} kcal · ${totals.protein}P / ${totals.carbs}C / ${totals.fat}F</div></div>
+    <div class="nut-kicker">Add ingredient</div>
+    <input class="sh-inp" id="riName" placeholder="Ingredient name">
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Grams</div><input class="cff" id="riGrams" inputmode="decimal"></div><div class="ccfw"><div class="cfl">Calories</div><input class="cff" id="riCalories" inputmode="decimal"></div></div>
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Protein</div><input class="cff" id="riProtein" inputmode="decimal"></div><div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="riCarbs" inputmode="decimal"></div><div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="riFat" inputmode="decimal"></div></div>
+    <button class="nut-secondary" onclick="addRecipeIngredientFromSheet()">Add ingredient</button>
+    <div class="nut-kicker">Finished cooked weight</div>
+    <input class="sh-inp" id="nrCooked" inputmode="decimal" placeholder="Total cooked weight, g">
+    <button class="nut-add" onclick="saveRecipeFromSheet()">Save recipe</button>`;
+  document.getElementById('addSheet').appendChild(body);
+}
+function addRecipeIngredientFromSheet(){
+  const name=document.getElementById('riName')?.value.trim();
+  if(!name){toast('Enter ingredient');return}
+  recipeDraftAddIngredient({name,grams:document.getElementById('riGrams')?.value,calories:document.getElementById('riCalories')?.value,protein:document.getElementById('riProtein')?.value,carbs:document.getElementById('riCarbs')?.value,fat:document.getElementById('riFat')?.value});
+  _recipeDraft.name=document.getElementById('nrName')?.value.trim();
+  renderRecipeBuilderBody();
+}
+function saveRecipeFromSheet(){
+  const name=document.getElementById('nrName')?.value.trim();
+  const cooked=parseNum(document.getElementById('nrCooked')?.value);
+  if(!name){toast('Name recipe');return}
+  if(!(_recipeDraft.ingredients||[]).length){toast('Add ingredients');return}
+  if(!cooked){toast('Enter cooked weight');return}
+  createRecipeFromDraft(name,cooked);
+  saveDB();closeSheet();renderNutrition();toast('Recipe saved');
+}
+function openRecipePortionSheet(recipeId,mealId='snacks'){
+  _recipePortionMealId=mealId;
+  const recipe=ensureNutrition(DB).recipes.find(r=>r.id===recipeId&&!r.archived);
+  if(!recipe)return;
+  document.getElementById('shTitle').textContent='Log recipe';
+  document.getElementById('shInp').style.display='none';
+  const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
+  const oldRecipe=document.getElementById('recipeSheetBody');if(oldRecipe)oldRecipe.remove();
+  const acts=document.querySelector('#addSheet .sh-acts');if(acts)acts.style.display='none';
+  const per=recipe.per100g||recipePer100(recipe);
+  const body=document.createElement('div');
+  body.id='recipeSheetBody';
+  body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
+  body.innerHTML=`<div class="nut-card" style="margin:0"><div class="nut-kicker">${esc(recipe.name)}</div><div class="nut-cal" style="font-size:38px">${per.calories}<span>kcal / 100g</span></div><div class="nut-meal-sub">${per.protein}P / ${per.carbs}C / ${per.fat}F per 100g</div></div>
+    <input type="hidden" id="rpId" value="${esc(recipe.id)}">
+    <div class="cfl">Portion grams</div><input class="sh-inp" id="rpGrams" inputmode="decimal" placeholder="350">
+    <button class="nut-add" onclick="saveRecipePortionFromSheet()">Log portion</button>`;
+  document.getElementById('addSheet').appendChild(body);
+  document.getElementById('addSheet').classList.add('open');document.getElementById('shBg').classList.add('open');
+}
+function saveRecipePortionFromSheet(){
+  const item=logRecipePortion(document.getElementById('rpId')?.value,document.getElementById('rpGrams')?.value,_recipePortionMealId,today());
+  if(!item){toast('Recipe not found');return}
+  saveDB();closeSheet();renderNutrition();toast('Recipe logged');
 }
 function saveNutritionFood(){
   const day=nutritionDay(today());
@@ -3892,6 +3988,7 @@ function renderNutrition(){
     <div class="nut-card"><div class="nut-kicker">Meals</div>${meals}</div>
     <div class="nut-card"><div class="nut-kicker">Coach · ${coach.confidence} confidence</div>${coach.lines.map(l=>`<div class="nut-meal-sub" style="margin-bottom:6px">${esc(l)}</div>`).join('')}<button class="mini" onclick="openNutritionTargets()">Targets</button></div>
     <button class="nut-add" onclick="openNutritionAdd('snacks')">Add food</button>
+    <button class="nut-secondary" onclick="openRecipeBuilder()">Create recipe</button>
   </div>`;
 }
 function toggleNutritionTargetType(){
