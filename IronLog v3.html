@@ -1648,6 +1648,7 @@ function loadDB(){
 function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
 let DB;
 let openCards={},setCounts={},addSheetCat=null,curSplit=null,cardioOpen=false,chartInst={};
+let _nutritionMealId='snacks';
 let _draftCache={}; // {exId: [{w,r,rpe},...]} persists across re-renders
 let _sessionDone=new Set(); // exIds saved this session — shown in Done section
 
@@ -2650,6 +2651,7 @@ function closeSheet(){
   document.querySelectorAll('#addSheet .addsec-list').forEach(el=>el.remove());
   // Remove settings sheet body if present
   const sb=document.getElementById('settSheetBody');if(sb)sb.remove();
+  const nb=document.getElementById('nutSheetBody');if(nb)nb.remove();
   // Restore title style
   const shTtl=document.getElementById('shTitle');
   if(shTtl){shTtl.style.fontFamily='';shTtl.style.fontSize='';}
@@ -3648,6 +3650,57 @@ function calcBestStreak() {
 }
 
 // ── Home Dashboard ────────────────────────────────────────────────────────────
+function openNutritionAdd(mealId='snacks'){
+  _nutritionMealId=mealId;
+  document.getElementById('shTitle').textContent='Add food';
+  document.getElementById('shInp').style.display='none';
+  document.querySelectorAll('#addSheet .addsec-list').forEach(el=>el.remove());
+  const oldSett=document.getElementById('settSheetBody');if(oldSett)oldSett.remove();
+  const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
+  const acts=document.querySelector('#addSheet .sh-acts');
+  if(acts)acts.style.display='none';
+  const body=document.createElement('div');
+  body.id='nutSheetBody';
+  body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
+  body.innerHTML=`<input class="sh-inp" id="nfName" placeholder="Food name">
+    <div class="cc-fields">
+      <div class="ccfw"><div class="cfl">Grams</div><input class="cff" id="nfGrams" inputmode="decimal" placeholder="100"></div>
+      <div class="ccfw"><div class="cfl">Calories</div><input class="cff" id="nfCalories" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="cc-fields">
+      <div class="ccfw"><div class="cfl">Protein</div><input class="cff" id="nfProtein" inputmode="decimal" placeholder="0"></div>
+      <div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="nfCarbs" inputmode="decimal" placeholder="0"></div>
+      <div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="nfFat" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <button class="nut-add" onclick="saveNutritionFood()">Save food</button>`;
+  const sheet=document.getElementById('addSheet');
+  sheet.appendChild(body);
+  sheet.classList.add('open');
+  document.getElementById('shBg').classList.add('open');
+  setTimeout(()=>document.getElementById('nfName')?.focus(),250);
+}
+function saveNutritionFood(){
+  const day=nutritionDay(today());
+  const meal=day.meals.find(m=>m.id===_nutritionMealId)||day.meals[3];
+  const name=document.getElementById('nfName')?.value.trim()||'Food';
+  const item={
+    type:'food',
+    sourceId:null,
+    name,
+    grams:parseNum(document.getElementById('nfGrams')?.value),
+    calories:Math.round(parseNum(document.getElementById('nfCalories')?.value)),
+    protein:nRound(parseNum(document.getElementById('nfProtein')?.value)),
+    carbs:nRound(parseNum(document.getElementById('nfCarbs')?.value)),
+    fat:nRound(parseNum(document.getElementById('nfFat')?.value)),
+    snapshot:true
+  };
+  meal.items.push(item);
+  day.quality=nutritionQuality(day);
+  saveDB();
+  closeSheet();
+  renderNutrition();
+  toast('Food added');
+}
 function macroBar(label,val,target){
   const pct=target?Math.min(100,Math.round((val/target)*100)):0;
   return `<div><div class="nut-bar-top"><span>${label}</span><span>${val} / ${target}g</span></div><div class="nut-bar-track"><div class="nut-bar-fill" style="width:${pct}%"></div></div></div>`;
