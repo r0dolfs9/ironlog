@@ -1727,6 +1727,73 @@ function nutritionQuality(day){
   if(t.calories<1200||t.protein<80)return 'likelyIncomplete';
   return 'open';
 }
+function starterFoods(){
+  return [
+    {id:'usda-chicken-breast-cooked',name:'Chicken breast, cooked',source:'USDA FoodData Central',per100g:{calories:165,protein:31,carbs:0,fat:3.6},serving:null,archived:false},
+    {id:'usda-white-rice-cooked',name:'White rice, cooked',source:'USDA FoodData Central',per100g:{calories:130,protein:2.7,carbs:28.2,fat:0.3},serving:null,archived:false},
+    {id:'usda-egg-whole-raw',name:'Egg, whole',source:'USDA FoodData Central',per100g:{calories:143,protein:12.6,carbs:0.7,fat:9.5},serving:null,archived:false},
+    {id:'usda-olive-oil',name:'Olive oil',source:'USDA FoodData Central',per100g:{calories:884,protein:0,carbs:0,fat:100},serving:null,archived:false},
+    {id:'usda-oats-raw',name:'Oats, raw',source:'USDA FoodData Central',per100g:{calories:389,protein:16.9,carbs:66.3,fat:6.9},serving:null,archived:false},
+    {id:'usda-banana-raw',name:'Banana, raw',source:'USDA FoodData Central',per100g:{calories:89,protein:1.1,carbs:22.8,fat:0.3},serving:null,archived:false},
+    {id:'usda-potato-boiled',name:'Potato, boiled',source:'USDA FoodData Central',per100g:{calories:87,protein:1.9,carbs:20.1,fat:0.1},serving:null,archived:false},
+    {id:'usda-greek-yogurt-nonfat',name:'Greek yogurt, nonfat plain',source:'USDA FoodData Central',per100g:{calories:59,protein:10.2,carbs:3.6,fat:0.4},serving:null,archived:false}
+  ];
+}
+function foodLibrary(){
+  const privateFoods=(ensureNutrition(DB).foods||[]).filter(f=>!f.archived);
+  return [...starterFoods(),...privateFoods];
+}
+function calcPer100FromEntry(item){
+  const grams=parseNum(item.grams);
+  if(!grams)return {calories:0,protein:0,carbs:0,fat:0};
+  const factor=100/grams;
+  return {
+    calories:Math.round(parseNum(item.calories)*factor),
+    protein:nRound(parseNum(item.protein)*factor),
+    carbs:nRound(parseNum(item.carbs)*factor),
+    fat:nRound(parseNum(item.fat)*factor)
+  };
+}
+function nutritionWeekDates(end=today()){
+  const dates=[];const d=new Date(end+'T00:00:00');
+  for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);dates.push(x.toISOString().slice(0,10))}
+  return dates;
+}
+function nutritionCoachSummary(){
+  ensureNutrition(DB);
+  const dates=nutritionWeekDates();
+  const days=dates.map(d=>DB.nutrition.diary[d]).filter(Boolean);
+  const complete=days.filter(d=>nutritionQuality(d)==='complete').length;
+  const logged=days.filter(d=>nutritionTotals(d).calories>0).length;
+  const weights=[...(DB.bodyWeights||[])].filter(e=>e.date>=dates[0]&&e.date<=dates[6]).sort((a,b)=>a.date.localeCompare(b.date));
+  const confidence=(complete>=5&&weights.length>=5)?'high':((logged>=4&&weights.length>=3)?'medium':'low');
+  const avg=days.length?Math.round(days.reduce((a,d)=>a+nutritionTotals(d).calories,0)/days.length):0;
+  const lines=[`Nutrition data: ${logged}/7 days logged, ${complete}/7 marked complete.`,`Weigh-ins: ${weights.length}/7.`,`Average intake: ${avg||'not enough data'} kcal.`];
+  if(weights.length>=2){
+    const first=parseNum(weights[0].weight),last=parseNum(weights[weights.length-1].weight);
+    lines.push(`Scale trend: ${nRound(last-first)} kg across logged weigh-ins.`);
+  }
+  if(confidence==='low')lines.push('Recommendation: finish more food logs before changing targets.');
+  else lines.push('Recommendation: keep targets unchanged until the weekly check-in has more history.');
+  return {confidence,lines};
+}
+function nutritionMarkdownLines(){
+  ensureNutrition(DB);
+  const lines=['## Nutrition'];
+  const t=DB.nutrition.targets;
+  lines.push(`Current targets: training ${t.trainingDay.calories} kcal (${t.trainingDay.protein}P/${t.trainingDay.carbs}C/${t.trainingDay.fat}F), rest ${t.restDay.calories} kcal (${t.restDay.protein}P/${t.restDay.carbs}C/${t.restDay.fat}F).`);
+  const coach=nutritionCoachSummary();
+  lines.push(`Coach confidence: ${coach.confidence}`);
+  coach.lines.forEach(l=>lines.push(`- ${l}`));
+  const dates=Object.keys(DB.nutrition.diary||{}).sort((a,b)=>b.localeCompare(a)).slice(0,14);
+  dates.forEach(date=>{
+    const d=DB.nutrition.diary[date];const totals=nutritionTotals(d);
+    lines.push(`\n### ${date} - ${totals.calories} kcal, ${totals.protein}P / ${totals.carbs}C / ${totals.fat}F, quality ${nutritionQuality(d)}`);
+    (d.meals||[]).forEach(m=>(m.items||[]).forEach(it=>lines.push(`- ${m.name}: ${it.name} (${it.grams||'?'}g) - ${it.calories} kcal, ${it.protein}P/${it.carbs}C/${it.fat}F`)));
+  });
+  lines.push('');
+  return lines;
+}
 function vol(sets){return sets.reduce((a,s)=>a+parseNum(s.reps)*parseNum(s.weight),0)}
 function maxWt(sets){return Math.max(0,...sets.map(s=>parseNum(s.weight)))}
 function toast(msg){
@@ -3662,6 +3729,8 @@ function openNutritionAdd(mealId='snacks'){
   const body=document.createElement('div');
   body.id='nutSheetBody';
   body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
+  const foods=foodLibrary();
+  const chips=foods.map(f=>`<button class="nut-pill" style="text-align:left;color:var(--text);background:var(--glass);border-color:var(--border)" onclick="fillNutritionFood('${jsa(f.id)}')">${esc(f.name)}</button>`).join('');
   body.innerHTML=`<input class="sh-inp" id="nfName" placeholder="Food name">
     <div class="cc-fields">
       <div class="ccfw"><div class="cfl">Grams</div><input class="cff" id="nfGrams" inputmode="decimal" placeholder="100"></div>
@@ -3672,12 +3741,24 @@ function openNutritionAdd(mealId='snacks'){
       <div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="nfCarbs" inputmode="decimal" placeholder="0"></div>
       <div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="nfFat" inputmode="decimal" placeholder="0"></div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)"><input type="checkbox" id="nfSave"> Save as private food</label>
+    <div class="nut-kicker" style="margin:4px 0 0">Starter + saved foods</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${chips}</div>
     <button class="nut-add" onclick="saveNutritionFood()">Save food</button>`;
   const sheet=document.getElementById('addSheet');
   sheet.appendChild(body);
   sheet.classList.add('open');
   document.getElementById('shBg').classList.add('open');
   setTimeout(()=>document.getElementById('nfName')?.focus(),250);
+}
+function fillNutritionFood(id){
+  const f=foodLibrary().find(x=>x.id===id);if(!f)return;
+  document.getElementById('nfName').value=f.name;
+  document.getElementById('nfGrams').value='100';
+  document.getElementById('nfCalories').value=f.per100g.calories;
+  document.getElementById('nfProtein').value=f.per100g.protein;
+  document.getElementById('nfCarbs').value=f.per100g.carbs;
+  document.getElementById('nfFat').value=f.per100g.fat;
 }
 function saveNutritionFood(){
   const day=nutritionDay(today());
@@ -3695,6 +3776,9 @@ function saveNutritionFood(){
     snapshot:true
   };
   meal.items.push(item);
+  if(document.getElementById('nfSave')?.checked&&item.grams>0){
+    ensureNutrition(DB).foods.push({id:uid(),name:item.name,source:'private',per100g:calcPer100FromEntry(item),serving:null,archived:false});
+  }
   day.quality=nutritionQuality(day);
   saveDB();
   closeSheet();
@@ -3714,6 +3798,7 @@ function renderNutrition(){
   const totals=nutritionTotals(day);
   const target=nutritionTarget(day);
   const remaining=Math.max(0,target.calories-totals.calories);
+  const coach=nutritionCoachSummary();
   const meals=day.meals.map(m=>{
     const mt=mealTotals(m);
     const sub=mt.calories?`${mt.calories} kcal · ${mt.protein}P / ${mt.carbs}C / ${mt.fat}F`:'No items yet';
@@ -3733,6 +3818,7 @@ function renderNutrition(){
       </div>
     </div>
     <div class="nut-card"><div class="nut-kicker">Meals</div>${meals}</div>
+    <div class="nut-card"><div class="nut-kicker">Coach · ${coach.confidence} confidence</div>${coach.lines.map(l=>`<div class="nut-meal-sub" style="margin-bottom:6px">${esc(l)}</div>`).join('')}<button class="mini" onclick="openNutritionTargets()">Targets</button></div>
     <button class="nut-add" onclick="openNutritionAdd('snacks')">Add food</button>
   </div>`;
 }
@@ -3740,6 +3826,38 @@ function toggleNutritionTargetType(){
   const d=nutritionDay(today());
   d.targetType=d.targetType==='rest'?'training':'rest';
   saveDB();renderNutrition();
+}
+function openNutritionTargets(){
+  const n=ensureNutrition(DB),t=n.targets;
+  document.getElementById('shTitle').textContent='Nutrition targets';
+  document.getElementById('shInp').style.display='none';
+  const oldSett=document.getElementById('settSheetBody');if(oldSett)oldSett.remove();
+  const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
+  const acts=document.querySelector('#addSheet .sh-acts');if(acts)acts.style.display='none';
+  const body=document.createElement('div');
+  body.id='nutSheetBody';
+  body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
+  body.innerHTML=`<div class="nut-kicker">Mode</div>
+    <select class="sh-inp" id="ntMode"><option value="conservative">Conservative</option><option value="standard">Standard</option><option value="aggressive">Aggressive</option></select>
+    <div class="nut-kicker">Training day</div>
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Calories</div><input class="cff" id="ntTc" value="${t.trainingDay.calories}"></div><div class="ccfw"><div class="cfl">Protein</div><input class="cff" id="ntTp" value="${t.trainingDay.protein}"></div></div>
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="ntTcarb" value="${t.trainingDay.carbs}"></div><div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="ntTf" value="${t.trainingDay.fat}"></div></div>
+    <div class="nut-kicker">Rest day</div>
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Calories</div><input class="cff" id="ntRc" value="${t.restDay.calories}"></div><div class="ccfw"><div class="cfl">Protein</div><input class="cff" id="ntRp" value="${t.restDay.protein}"></div></div>
+    <div class="cc-fields"><div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="ntRcarb" value="${t.restDay.carbs}"></div><div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="ntRf" value="${t.restDay.fat}"></div></div>
+    <button class="nut-add" onclick="saveNutritionTargets()">Save targets</button>`;
+  document.getElementById('addSheet').appendChild(body);
+  document.getElementById('ntMode').value=t.mode||'standard';
+  document.getElementById('addSheet').classList.add('open');document.getElementById('shBg').classList.add('open');
+}
+function saveNutritionTargets(){
+  const t=ensureNutrition(DB).targets;
+  t.mode=document.getElementById('ntMode')?.value||'standard';
+  t.startDate=t.startDate||today();
+  t.trainingDay={calories:Math.round(parseNum(document.getElementById('ntTc')?.value)),protein:nRound(parseNum(document.getElementById('ntTp')?.value)),carbs:nRound(parseNum(document.getElementById('ntTcarb')?.value)),fat:nRound(parseNum(document.getElementById('ntTf')?.value))};
+  t.restDay={calories:Math.round(parseNum(document.getElementById('ntRc')?.value)),protein:nRound(parseNum(document.getElementById('ntRp')?.value)),carbs:nRound(parseNum(document.getElementById('ntRcarb')?.value)),fat:nRound(parseNum(document.getElementById('ntRf')?.value))};
+  t.history.push({id:uid(),date:today(),mode:t.mode,trainingDay:{...t.trainingDay},restDay:{...t.restDay}});
+  saveDB();closeSheet();renderNutrition();toast('Targets saved');
 }
 
 function renderHome() {
@@ -4058,6 +4176,8 @@ function exportMarkdown() {
     lines.push('');
     if (DB.bwGoal) lines.push(`**Goal:** ${DB.bwGoal.kg} kg\n`);
   }
+
+  lines.push(...nutritionMarkdownLines());
 
   const md = lines.join('\n');
   const blob = new Blob([md], {type:'text/markdown'});
