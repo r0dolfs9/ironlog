@@ -1,5 +1,7 @@
 # IronLog v3 — Redesign Plan
 
+> Current status note, 2026-05-26: this is now a historical v3 redesign plan, not the active implementation checklist. The active app source is `IronLog v3.html`, the live GitHub Pages file is `index.html`, and old HTML versions have been moved to `archive/`.
+
 ## Direction
 **"Warm iOS"** — keep the dark base but swap the cold lime/cyberpunk feel for a warmer, more editorial dark mode inspired by Apple Health / iOS native apps + Clock app. Glassmorphism layers, generous whitespace, big SF-style type. Less "gym bro neon," more "I'd put this on my watch."
 
@@ -148,7 +150,7 @@ A scrollable dashboard with 4–5 glass cards:
 
 ### Files
 - `IronLog v3.html` ← new, built by forking v2 and applying phases incrementally
-- `IronLog v2.html` ← stays as fallback
+- `archive/IronLog v2.html` - historical fallback
 - Same `manifest.json`, `sw.js`, icons — no change
 
 ### What WON'T change
@@ -159,4 +161,4 @@ A scrollable dashboard with 4–5 glass cards:
 ---
 
 ## Mockup
-See **`IronLog v3 mockup.html`** for a clickable preview of the new Home dashboard. That's the visual direction. If you like it, I'll spread the same material rules to the rest of the app in phases.
+See **`archive/IronLog v3 mockup.html`** for the old clickable preview of the Home dashboard. This file is historical reference only.

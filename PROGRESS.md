@@ -1,23 +1,25 @@
 # IronLog — Redesign Progress
 
-## Current files
-- **`IronLog v2.html`** — v2 source (DO NOT EDIT — preserved as fallback)
-- **`IronLog v3.html`** — v3 source ← **EDIT THIS ONE** (~4900 lines)
-- **`index.html`** — live on GitHub Pages (synced with v3)
-- **`sw.js`** — service worker — cache: `ironlog-v10`
-- **`manifest.json`** — PWA manifest
+## Current source of truth
+- **`IronLog v3.html`** - active development source. Edit this first.
+- **`index.html`** - live GitHub Pages entry point. Keep synced with `IronLog v3.html`.
+- **`sw.js`** - service worker cache: `ironlog-v16`.
+- **`manifest.json`** - PWA manifest.
+- **`nutrition-stage1.test.js` / `nutrition-stage2.test.js` / `nutrition-stage3.test.js` / `nutrition-stage4.test.js`** - nutrition regression tests.
 
 ## Live URL
-**r0dolfs9.github.io/ironlog** — currently on v3, gesture controls live ✅
-- **`icon-192.png` / `icon-512.png`** — standard PWA icons
-- **`icon-maskable-192.png` / `icon-maskable-512.png`** — maskable variants
-- **`IronLog.html`** — v1 reference, do not touch
-- **`IronLog v3 mockup.html`** — Home screen design reference
-- **`v3-plan.md`** — original v3 IA spec
+**r0dolfs9.github.io/ironlog** - currently on v3 with gesture controls, Nutrition, saved foods, targets, coach handoff, theme switching, and cooked-weight recipe builder.
+- **`icon-192.png` / `icon-512.png`** - standard PWA icons.
+- **`icon-maskable-192.png` / `icon-maskable-512.png`** - maskable variants.
+- **`archive/IronLog.html`** - v1 historical reference.
+- **`archive/IronLog v2.html`** - v2 historical fallback.
+- **`archive/IronLog v3 mockup.html`** - old Home-screen design reference.
+- **`v3-plan.md`** - original v3 IA spec, now historical.
 
 ## How to publish to GitHub Pages
-- Repo: **`github.com/r0dolfs9/ironlog`** → live at **`r0dolfs9.github.io/ironlog`**
-- When v3 is ready: copy `IronLog v3.html` → `index.html` → bump `CACHE` in `sw.js` to `ironlog-v9` → commit + push
+- Repo: **`github.com/r0dolfs9/ironlog`** -> live at **`r0dolfs9.github.io/ironlog`**.
+- For app changes: update `IronLog v3.html`, copy it to `index.html`, bump `CACHE` in `sw.js`, run the nutrition tests, commit, and push.
+- Do not edit files in `archive/` unless intentionally reviewing old versions.
 
 ---
 
@@ -168,3 +170,25 @@
 - 1RM estimates (Epley/Brzycki) on PR cards
 - Per-exercise default rest time (currently global)
 - Opt-in push notifications for training gaps
+
+---
+
+### 2026-05-26 - Nutrition, themes, recipes, and repo cleanup
+
+**Done:**
+- Nutrition macro tracking is implemented in the active v3 app: nutrition data model, Nutrition tab, macro dashboard, manual food logging, saved foods, target editing, coach card, and AI handoff markdown export.
+- Starter food database is included as generic USDA FoodData Central-style per-100g foods. Branded/package foods should still use label values as the source of truth.
+- Theme switching is implemented in Settings with persistent app themes.
+- Cooked-weight recipe builder is implemented: create recipes, add ingredient macros, enter cooked weight, save, and log recipe portions by grams.
+- `IronLog v3.html` and `index.html` are synced; `sw.js` cache is `ironlog-v16`.
+- Old tracked HTML references were moved out of the repo root into `archive/` so the root shows only active app files, docs, tests, and assets.
+
+**Current active files:**
+- `IronLog v3.html` - edit this first.
+- `index.html` - live GitHub Pages entry point, synced from v3.
+- `sw.js` - service worker cache.
+- `nutrition-stage1.test.js` through `nutrition-stage4.test.js` - nutrition regression tests.
+
+**Next:**
+- User phone smoke test: install/open fresh app, confirm Nutrition, Add Food, saved foods, recipe builder, theme switching, and AI handoff export behave correctly.
+- Next feature candidates: improve food search/database depth, recipe editing after save, barcode/photo/import paths, weekly nutrition trend screens, and smarter macro adjustment recommendations once enough real logged data exists.
