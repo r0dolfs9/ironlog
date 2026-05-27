@@ -192,3 +192,20 @@
 **Next:**
 - User phone smoke test: install/open fresh app, confirm Nutrition, Add Food, saved foods, recipe builder, theme switching, and AI handoff export behave correctly.
 - Next feature candidates: improve food search/database depth, recipe editing after save, barcode/photo/import paths, weekly nutrition trend screens, and smarter macro adjustment recommendations once enough real logged data exists.
+
+---
+
+### 2026-05-27 - Nutrition upgrade batch
+
+**Done:**
+- Added editable saved recipes. Future logs use the updated recipe math, while already logged recipe portions stay unchanged as macro snapshots.
+- Replaced the old food chip list with searchable starter/saved/recipe results and clearer per-100g labels.
+- Expanded the starter food database with common cutting staples from generic USDA FoodData Central-style per-100g entries and added category labels.
+- Added a 7-day nutrition trend card with logged days, complete days, average calories/macros, target delta, and scale trend when weigh-ins exist.
+- Strengthened macro coach logic so it refuses target changes when logs/weigh-ins are incomplete and only suggests small target moves from complete weekly trends.
+- Added `nutrition-stage5.test.js` for recipe editing, search, weekly trends, and macro recommendation gating.
+- Bumped `sw.js` cache to `ironlog-v17`.
+
+**Next:**
+- User phone smoke test for searchable food logging, recipe edit/update, weekly trends, coach text, theme switching, and PWA refresh behavior.
+- Later upgrades: barcode/photo/import food entry, richer branded food source strategy, recipe duplication, and visual nutrition charts.

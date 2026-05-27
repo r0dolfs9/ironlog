@@ -1781,20 +1781,51 @@ function nutritionQuality(day){
 }
 function starterFoods(){
   return [
-    {id:'usda-chicken-breast-cooked',name:'Chicken breast, cooked',source:'USDA FoodData Central',per100g:{calories:165,protein:31,carbs:0,fat:3.6},serving:null,archived:false},
-    {id:'usda-white-rice-cooked',name:'White rice, cooked',source:'USDA FoodData Central',per100g:{calories:130,protein:2.7,carbs:28.2,fat:0.3},serving:null,archived:false},
-    {id:'usda-egg-whole-raw',name:'Egg, whole',source:'USDA FoodData Central',per100g:{calories:143,protein:12.6,carbs:0.7,fat:9.5},serving:null,archived:false},
-    {id:'usda-olive-oil',name:'Olive oil',source:'USDA FoodData Central',per100g:{calories:884,protein:0,carbs:0,fat:100},serving:null,archived:false},
-    {id:'usda-oats-raw',name:'Oats, raw',source:'USDA FoodData Central',per100g:{calories:389,protein:16.9,carbs:66.3,fat:6.9},serving:null,archived:false},
-    {id:'usda-banana-raw',name:'Banana, raw',source:'USDA FoodData Central',per100g:{calories:89,protein:1.1,carbs:22.8,fat:0.3},serving:null,archived:false},
-    {id:'usda-potato-boiled',name:'Potato, boiled',source:'USDA FoodData Central',per100g:{calories:87,protein:1.9,carbs:20.1,fat:0.1},serving:null,archived:false},
-    {id:'usda-greek-yogurt-nonfat',name:'Greek yogurt, nonfat plain',source:'USDA FoodData Central',per100g:{calories:59,protein:10.2,carbs:3.6,fat:0.4},serving:null,archived:false}
+    {id:'usda-chicken-breast-cooked',name:'Chicken breast, cooked',source:'USDA FoodData Central',category:'Protein',per100g:{calories:165,protein:31,carbs:0,fat:3.6},serving:null,archived:false},
+    {id:'usda-turkey-breast-cooked',name:'Turkey breast, cooked',source:'USDA FoodData Central',category:'Protein',per100g:{calories:135,protein:30.1,carbs:0, fat:1},serving:null,archived:false},
+    {id:'usda-lean-beef-90-cooked',name:'Ground beef, 90% lean, cooked',source:'USDA FoodData Central',category:'Protein',per100g:{calories:217,protein:26.1,carbs:0,fat:11.8},serving:null,archived:false},
+    {id:'usda-salmon-atlantic-cooked',name:'Salmon, Atlantic, cooked',source:'USDA FoodData Central',category:'Protein',per100g:{calories:206,protein:22.1,carbs:0,fat:12.4},serving:null,archived:false},
+    {id:'usda-tuna-canned-water',name:'Tuna, canned in water, drained',source:'USDA FoodData Central',category:'Protein',per100g:{calories:116,protein:25.5,carbs:0,fat:0.8},serving:null,archived:false},
+    {id:'usda-egg-whole-raw',name:'Egg, whole',source:'USDA FoodData Central',category:'Protein',per100g:{calories:143,protein:12.6,carbs:0.7,fat:9.5},serving:null,archived:false},
+    {id:'usda-egg-white-raw',name:'Egg white',source:'USDA FoodData Central',category:'Protein',per100g:{calories:52,protein:10.9,carbs:0.7,fat:0.2},serving:null,archived:false},
+    {id:'usda-greek-yogurt-nonfat',name:'Greek yogurt, nonfat plain',source:'USDA FoodData Central',category:'Dairy',per100g:{calories:59,protein:10.2,carbs:3.6,fat:0.4},serving:null,archived:false},
+    {id:'usda-cottage-cheese-lowfat',name:'Cottage cheese, lowfat',source:'USDA FoodData Central',category:'Dairy',per100g:{calories:82,protein:11,carbs:3.4,fat:2.3},serving:null,archived:false},
+    {id:'usda-white-rice-cooked',name:'White rice, cooked',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:130,protein:2.7,carbs:28.2,fat:0.3},serving:null,archived:false},
+    {id:'usda-brown-rice-cooked',name:'Brown rice, cooked',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:123,protein:2.7,carbs:25.6,fat:1},serving:null,archived:false},
+    {id:'usda-oats-raw',name:'Oats, raw',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:389,protein:16.9,carbs:66.3,fat:6.9},serving:null,archived:false},
+    {id:'usda-potato-boiled',name:'Potato, boiled',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:87,protein:1.9,carbs:20.1,fat:0.1},serving:null,archived:false},
+    {id:'usda-sweet-potato-baked',name:'Sweet potato, baked',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:90,protein:2,carbs:20.7,fat:0.2},serving:null,archived:false},
+    {id:'usda-pasta-cooked',name:'Pasta, cooked',source:'USDA FoodData Central',category:'Carbs',per100g:{calories:158,protein:5.8,carbs:30.9,fat:0.9},serving:null,archived:false},
+    {id:'usda-banana-raw',name:'Banana, raw',source:'USDA FoodData Central',category:'Fruit',per100g:{calories:89,protein:1.1,carbs:22.8,fat:0.3},serving:null,archived:false},
+    {id:'usda-blueberries-raw',name:'Blueberries, raw',source:'USDA FoodData Central',category:'Fruit',per100g:{calories:57,protein:0.7,carbs:14.5,fat:0.3},serving:null,archived:false},
+    {id:'usda-broccoli-raw',name:'Broccoli, raw',source:'USDA FoodData Central',category:'Vegetables',per100g:{calories:34,protein:2.8,carbs:6.6,fat:0.4},serving:null,archived:false},
+    {id:'usda-spinach-raw',name:'Spinach, raw',source:'USDA FoodData Central',category:'Vegetables',per100g:{calories:23,protein:2.9,carbs:3.6,fat:0.4},serving:null,archived:false},
+    {id:'usda-olive-oil',name:'Olive oil',source:'USDA FoodData Central',category:'Fats',per100g:{calories:884,protein:0,carbs:0,fat:100},serving:null,archived:false},
+    {id:'usda-peanut-butter',name:'Peanut butter, smooth',source:'USDA FoodData Central',category:'Fats',per100g:{calories:588,protein:25.1,carbs:20,fat:50.4},serving:null,archived:false},
+    {id:'usda-almonds',name:'Almonds',source:'USDA FoodData Central',category:'Fats',per100g:{calories:579,protein:21.2,carbs:21.6,fat:49.9},serving:null,archived:false},
+    {id:'usda-whey-protein',name:'Whey protein powder',source:'USDA FoodData Central',category:'Protein',per100g:{calories:352,protein:78.1,carbs:6.3,fat:1.6},serving:null,archived:false}
   ];
 }
 function foodLibrary(){
   const privateFoods=(ensureNutrition(DB).foods||[]).filter(f=>!f.archived);
-  const recipes=(ensureNutrition(DB).recipes||[]).filter(r=>!r.archived).map(r=>({id:r.id,name:r.name,type:'recipe',source:'recipe',per100g:r.per100g||recipePer100(r),serving:null,archived:false}));
+  const recipes=(ensureNutrition(DB).recipes||[]).filter(r=>!r.archived).map(r=>({id:r.id,name:r.name,type:'recipe',source:'recipe',category:'Recipes',per100g:r.per100g||recipePer100(r),serving:null,archived:false}));
   return [...starterFoods(),...privateFoods,...recipes];
+}
+function foodSearchText(f){return `${f.name||''} ${f.category||''} ${f.source||''}`.toLowerCase()}
+function searchFoodLibrary(query='',limit=24){
+  const q=(query||'').trim().toLowerCase();
+  const terms=q.split(/\s+/).filter(Boolean);
+  const foods=foodLibrary();
+  const scored=foods.map((f,idx)=>{
+    const text=foodSearchText(f);
+    let score=q?0:1;
+    if(q&&text.includes(q))score+=8;
+    terms.forEach(t=>{if((f.name||'').toLowerCase().includes(t))score+=4;else if(text.includes(t))score+=2});
+    if(f.source==='private')score+=1.5;
+    if(f.type==='recipe')score+=1;
+    return {...f,matchLabel:`${f.category||f.source||'Food'} · ${f.per100g.calories} kcal · ${f.per100g.protein}P/${f.per100g.carbs}C/${f.per100g.fat}F per 100g`,_score:score,_idx:idx};
+  }).filter(f=>!q||f._score>0);
+  return scored.sort((a,b)=>b._score-a._score||a._idx-b._idx).slice(0,limit).map(({_score,_idx,...f})=>f);
 }
 function calcPer100FromEntry(item){
   const grams=parseNum(item.grams);
@@ -1829,6 +1860,12 @@ function logRecipePortion(recipeId,grams,mealId='snacks',date=today()){
   return item;
 }
 function recipeDraftClear(){_recipeDraft={ingredients:[]};return _recipeDraft}
+function recipeDraftLoad(recipeId){
+  const recipe=ensureNutrition(DB).recipes.find(r=>r.id===recipeId&&!r.archived);
+  if(!recipe)return null;
+  _recipeDraft={editingId:recipe.id,name:recipe.name,cookedWeightGrams:recipe.cookedWeightGrams,ingredients:(recipe.ingredients||[]).map(i=>({...i}))};
+  return _recipeDraft;
+}
 function recipeDraftAddIngredient(item){
   const ing={name:item.name||'Ingredient',grams:parseNum(item.grams),calories:Math.round(parseNum(item.calories)),protein:nRound(parseNum(item.protein)),carbs:nRound(parseNum(item.carbs)),fat:nRound(parseNum(item.fat)),snapshot:true};
   _recipeDraft.ingredients.push(ing);return ing;
@@ -1846,34 +1883,67 @@ function createRecipeFromDraft(name,cookedWeightGrams){
   recipeDraftClear();
   return recipe;
 }
+function updateRecipe(recipeId,patch){
+  const recipe=ensureNutrition(DB).recipes.find(r=>r.id===recipeId&&!r.archived);
+  if(!recipe)return null;
+  recipe.name=(patch.name||recipe.name||'Recipe').trim()||'Recipe';
+  recipe.cookedWeightGrams=parseNum(patch.cookedWeightGrams);
+  recipe.ingredients=(patch.ingredients||[]).map(i=>({name:i.name||'Ingredient',grams:parseNum(i.grams),calories:Math.round(parseNum(i.calories)),protein:nRound(parseNum(i.protein)),carbs:nRound(parseNum(i.carbs)),fat:nRound(parseNum(i.fat)),snapshot:true}));
+  recipe.per100g=recipePer100(recipe);
+  recipe.updatedAt=today();
+  return recipe;
+}
 function nutritionWeekDates(end=today()){
-  const dates=[];const d=new Date(end+'T00:00:00');
+  const dates=[];const d=new Date(end+'T12:00:00');
   for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);dates.push(x.toISOString().slice(0,10))}
   return dates;
 }
-function nutritionCoachSummary(){
+function nutritionWeeklyTrend(end=today()){
   ensureNutrition(DB);
-  const dates=nutritionWeekDates();
-  const days=dates.map(d=>DB.nutrition.diary[d]).filter(Boolean);
-  const complete=days.filter(d=>nutritionQuality(d)==='complete').length;
-  const logged=days.filter(d=>nutritionTotals(d).calories>0).length;
+  const dates=nutritionWeekDates(end);
+  const rows=dates.map(date=>{
+    const day=DB.nutrition.diary[date]||emptyNutritionDay();
+    const totals=nutritionTotals(day);
+    const target=nutritionTarget(day);
+    return {date,day,totals,target,quality:nutritionQuality(day)};
+  });
+  const loggedRows=rows.filter(r=>r.totals.calories>0);
+  const completeDays=rows.filter(r=>r.quality==='complete').length;
+  const loggedDays=loggedRows.length;
+  const sum=loggedRows.reduce((a,r)=>{a.calories+=r.totals.calories;a.protein+=r.totals.protein;a.carbs+=r.totals.carbs;a.fat+=r.totals.fat;a.targetCalories+=r.target.calories;return a},{calories:0,protein:0,carbs:0,fat:0,targetCalories:0});
   const weights=[...(DB.bodyWeights||[])].filter(e=>e.date>=dates[0]&&e.date<=dates[6]).sort((a,b)=>a.date.localeCompare(b.date));
-  const confidence=(complete>=5&&weights.length>=5)?'high':((logged>=4&&weights.length>=3)?'medium':'low');
-  const avg=days.length?Math.round(days.reduce((a,d)=>a+nutritionTotals(d).calories,0)/days.length):0;
-  const lines=[`Nutrition data: ${logged}/7 days logged, ${complete}/7 marked complete.`,`Weigh-ins: ${weights.length}/7.`,`Average intake: ${avg||'not enough data'} kcal.`];
-  if(weights.length>=2){
-    const first=parseNum(weights[0].weight),last=parseNum(weights[weights.length-1].weight);
-    lines.push(`Scale trend: ${nRound(last-first)} kg across logged weigh-ins.`);
-  }
-  let recommendation='Keep targets unchanged until the weekly check-in has more history.';
-  if(confidence==='low')recommendation='Finish more food logs before changing targets.';
-  else if(weights.length>=2){
-    const delta=parseNum(weights[weights.length-1].weight)-parseNum(weights[0].weight);
-    if(delta>0.1)recommendation='Weight is up across logged weigh-ins. If this persists with complete logs, reduce rest-day calories first.';
-    else if(delta<-1.0)recommendation='Weight is dropping quickly. Watch training performance before making another reduction.';
-  }
-  lines.push(`Recommendation: ${recommendation}`);
-  return {confidence,lines,recommendation};
+  const avgCalories=loggedDays?Math.round(sum.calories/loggedDays):0;
+  const avgTarget=loggedDays?Math.round(sum.targetCalories/loggedDays):0;
+  return {
+    dates,loggedDays,completeDays,weighIns:weights.length,
+    avgCalories,avgProtein:loggedDays?nRound(sum.protein/loggedDays):0,avgCarbs:loggedDays?nRound(sum.carbs/loggedDays):0,avgFat:loggedDays?nRound(sum.fat/loggedDays):0,
+    avgTargetCalories:avgTarget,calorieDelta:avgCalories&&avgTarget?avgCalories-avgTarget:0,
+    weightChange:weights.length>=2?nRound(parseNum(weights[weights.length-1].weight)-parseNum(weights[0].weight)):null,
+    rows
+  };
+}
+function macroAdjustmentAdvice(trend){
+  const confidence=(trend.completeDays>=5&&trend.weighIns>=5)?'high':((trend.loggedDays>=5&&trend.weighIns>=3)?'medium':'low');
+  if(confidence==='low')return {confidence,recommendation:'Finish more complete entries before changing macros.', reason:`Need at least 5 logged days and 3 weigh-ins; current data is ${trend.loggedDays}/7 logged, ${trend.completeDays}/7 complete, ${trend.weighIns}/7 weigh-ins.`,calorieChange:0};
+  if(trend.weightChange===null)return {confidence:'medium',recommendation:'Keep targets unchanged until weigh-ins show a real trend.',reason:'Nutrition logs exist but scale trend is missing.',calorieChange:0};
+  if(trend.weightChange<-1)return {confidence,recommendation:'Add 100-150 kcal or hold cuts for a week if training performance drops.',reason:'Weight is dropping faster than the usual weekly cutting range.',calorieChange:125};
+  if(trend.weightChange>=-1&&trend.weightChange<=-0.25)return {confidence,recommendation:'hold targets this week.',reason:'Weight loss is inside a controlled cutting range.',calorieChange:0};
+  if(trend.weightChange>-0.25&&trend.calorieDelta>-150)return {confidence,recommendation:'Reduce daily calories by 100-150 kcal if the next complete week looks the same.',reason:'Weight is flat or rising while intake is near target.',calorieChange:-125};
+  return {confidence,recommendation:'Keep targets unchanged and collect another complete week.',reason:'The trend is mixed; a change now could be noise.',calorieChange:0};
+}
+function nutritionCoachSummary(end=today()){
+  const trend=nutritionWeeklyTrend(end);
+  const advice=macroAdjustmentAdvice(trend);
+  const lines=[
+    `Nutrition data: ${trend.loggedDays}/7 days logged, ${trend.completeDays}/7 marked complete.`,
+    `Weigh-ins: ${trend.weighIns}/7.`,
+    `Weekly averages: ${trend.avgCalories||'not enough data'} kcal, ${trend.avgProtein}P / ${trend.avgCarbs}C / ${trend.avgFat}F.`,
+    `Average target delta: ${trend.calorieDelta>0?'+':''}${trend.calorieDelta} kcal/day.`
+  ];
+  if(trend.weightChange!==null)lines.push(`Scale trend: ${trend.weightChange>0?'+':''}${trend.weightChange} kg across logged weigh-ins.`);
+  lines.push(`Recommendation: ${advice.recommendation}`);
+  lines.push(`Reason: ${advice.reason}`);
+  return {confidence:advice.confidence,lines,recommendation:advice.recommendation,trend,advice};
 }
 function nutritionMarkdownLines(){
   ensureNutrition(DB);
@@ -1883,6 +1953,8 @@ function nutritionMarkdownLines(){
   const coach=nutritionCoachSummary();
   lines.push(`Coach confidence: ${coach.confidence}`);
   coach.lines.forEach(l=>lines.push(`- ${l}`));
+  lines.push(`Weekly trend: ${coach.trend.loggedDays}/7 logged, ${coach.trend.completeDays}/7 complete, ${coach.trend.avgCalories} kcal average, ${coach.trend.weightChange===null?'no scale trend':`${coach.trend.weightChange} kg scale trend`}.`);
+  lines.push(`Macro recommendation: ${coach.recommendation}`);
   const dates=Object.keys(DB.nutrition.diary||{}).sort((a,b)=>b.localeCompare(a)).slice(0,14);
   dates.forEach(date=>{
     const d=DB.nutrition.diary[date];const totals=nutritionTotals(d);
@@ -3828,8 +3900,6 @@ function openNutritionAdd(mealId='snacks'){
   const body=document.createElement('div');
   body.id='nutSheetBody';
   body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
-  const foods=foodLibrary();
-  const chips=foods.map(f=>`<button class="nut-pill" style="text-align:left;color:var(--text);background:var(--glass);border-color:var(--border)" onclick="${f.type==='recipe'?`openRecipePortionSheet('${jsa(f.id)}','${jsa(mealId)}')`:`fillNutritionFood('${jsa(f.id)}')`}">${esc(f.name)}</button>`).join('');
   body.innerHTML=`<input class="sh-inp" id="nfName" placeholder="Food name">
     <div class="cc-fields">
       <div class="ccfw"><div class="cfl">Grams</div><input class="cff" id="nfGrams" inputmode="decimal" placeholder="100"></div>
@@ -3841,15 +3911,28 @@ function openNutritionAdd(mealId='snacks'){
       <div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="nfFat" inputmode="decimal" placeholder="0"></div>
     </div>
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)"><input type="checkbox" id="nfSave"> Save as private food</label>
-    <div class="nut-kicker" style="margin:4px 0 0">Starter + saved foods</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">${chips}</div>
+    <div class="nut-kicker" style="margin:4px 0 0">Search starter, saved foods, and recipes</div>
+    <input class="sh-inp" id="foodSearch" placeholder="Search chicken, oats, recipe..." oninput="renderFoodSearchResults('${jsa(mealId)}')">
+    <div id="foodResults" style="display:flex;flex-direction:column;gap:8px"></div>
     <button class="nut-secondary" onclick="openRecipeBuilder()">Create cooked-weight recipe</button>
     <button class="nut-add" onclick="saveNutritionFood()">Save food</button>`;
   const sheet=document.getElementById('addSheet');
   sheet.appendChild(body);
+  renderFoodSearchResults(mealId);
   sheet.classList.add('open');
   document.getElementById('shBg').classList.add('open');
   setTimeout(()=>document.getElementById('nfName')?.focus(),250);
+}
+function renderFoodSearchResults(mealId='snacks'){
+  const box=document.getElementById('foodResults');if(!box)return;
+  const q=document.getElementById('foodSearch')?.value||'';
+  const foods=searchFoodLibrary(q,18);
+  box.innerHTML=foods.map(f=>{
+    const actions=f.type==='recipe'
+      ? `<button class="mini" onclick="openRecipePortionSheet('${jsa(f.id)}','${jsa(mealId)}')">Log</button><button class="mini" onclick="openRecipeBuilder('${jsa(f.id)}')">Edit</button>`
+      : `<button class="mini" onclick="fillNutritionFood('${jsa(f.id)}')">Use</button>`;
+    return `<div class="nut-recipe-row"><div><strong>${esc(f.name)}</strong><br><span>${esc(f.matchLabel||`${f.source} - ${f.per100g.calories} kcal per 100g`)}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${actions}</div></div>`;
+  }).join('')||'<div class="nut-meal-sub">No match. Enter macros manually from the package label.</div>';
 }
 function fillNutritionFood(id){
   const f=foodLibrary().find(x=>x.id===id);if(!f)return;
@@ -3860,8 +3943,9 @@ function fillNutritionFood(id){
   document.getElementById('nfCarbs').value=f.per100g.carbs;
   document.getElementById('nfFat').value=f.per100g.fat;
 }
-function openRecipeBuilder(){
-  document.getElementById('shTitle').textContent='Recipe builder';
+function openRecipeBuilder(recipeId=null){
+  if(recipeId)recipeDraftLoad(recipeId);else recipeDraftClear();
+  document.getElementById('shTitle').textContent=recipeId?'Edit recipe':'Recipe builder';
   document.getElementById('shInp').style.display='none';
   const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
   const oldRecipe=document.getElementById('recipeSheetBody');if(oldRecipe)oldRecipe.remove();
@@ -3876,7 +3960,7 @@ function renderRecipeBuilderBody(){
   const body=document.createElement('div');
   body.id='recipeSheetBody';
   body.style.cssText='padding:0 18px 32px;display:flex;flex-direction:column;gap:12px';
-  body.innerHTML=`<input class="sh-inp" id="nrName" placeholder="Recipe name" value="${esc(_recipeDraft.name||'')}">
+  body.innerHTML=`<input class="sh-inp" id="nrName" placeholder="Recipe name" value="${esc(_recipeDraft.name||'')}" oninput="_recipeDraft.name=this.value">
     <div class="nut-card" style="margin:0;padding:12px"><div class="nut-kicker">Ingredients</div><div style="display:flex;flex-direction:column;gap:8px">${rows}</div><div class="nut-meal-sub" style="margin-top:10px">Total: ${totals.calories} kcal · ${totals.protein}P / ${totals.carbs}C / ${totals.fat}F</div></div>
     <div class="nut-kicker">Add ingredient</div>
     <input class="sh-inp" id="riName" placeholder="Ingredient name">
@@ -3884,8 +3968,8 @@ function renderRecipeBuilderBody(){
     <div class="cc-fields"><div class="ccfw"><div class="cfl">Protein</div><input class="cff" id="riProtein" inputmode="decimal"></div><div class="ccfw"><div class="cfl">Carbs</div><input class="cff" id="riCarbs" inputmode="decimal"></div><div class="ccfw"><div class="cfl">Fat</div><input class="cff" id="riFat" inputmode="decimal"></div></div>
     <button class="nut-secondary" onclick="addRecipeIngredientFromSheet()">Add ingredient</button>
     <div class="nut-kicker">Finished cooked weight</div>
-    <input class="sh-inp" id="nrCooked" inputmode="decimal" placeholder="Total cooked weight, g">
-    <button class="nut-add" onclick="saveRecipeFromSheet()">Save recipe</button>`;
+    <input class="sh-inp" id="nrCooked" inputmode="decimal" placeholder="Total cooked weight, g" value="${esc(_recipeDraft.cookedWeightGrams||'')}" oninput="_recipeDraft.cookedWeightGrams=this.value">
+    <button class="nut-add" onclick="saveRecipeFromSheet()">${_recipeDraft.editingId?'Update recipe':'Save recipe'}</button>`;
   document.getElementById('addSheet').appendChild(body);
 }
 function addRecipeIngredientFromSheet(){
@@ -3893,6 +3977,7 @@ function addRecipeIngredientFromSheet(){
   if(!name){toast('Enter ingredient');return}
   recipeDraftAddIngredient({name,grams:document.getElementById('riGrams')?.value,calories:document.getElementById('riCalories')?.value,protein:document.getElementById('riProtein')?.value,carbs:document.getElementById('riCarbs')?.value,fat:document.getElementById('riFat')?.value});
   _recipeDraft.name=document.getElementById('nrName')?.value.trim();
+  _recipeDraft.cookedWeightGrams=parseNum(document.getElementById('nrCooked')?.value);
   renderRecipeBuilderBody();
 }
 function saveRecipeFromSheet(){
@@ -3901,8 +3986,11 @@ function saveRecipeFromSheet(){
   if(!name){toast('Name recipe');return}
   if(!(_recipeDraft.ingredients||[]).length){toast('Add ingredients');return}
   if(!cooked){toast('Enter cooked weight');return}
-  createRecipeFromDraft(name,cooked);
-  saveDB();closeSheet();renderNutrition();toast('Recipe saved');
+  const editingId=_recipeDraft.editingId;
+  if(editingId)updateRecipe(editingId,{name,cookedWeightGrams:cooked,ingredients:_recipeDraft.ingredients});
+  else createRecipeFromDraft(name,cooked);
+  saveDB();closeSheet();renderNutrition();toast(editingId?'Recipe updated':'Recipe saved');
+  recipeDraftClear();
 }
 function openRecipePortionSheet(recipeId,mealId='snacks'){
   _recipePortionMealId=mealId;
@@ -3959,6 +4047,19 @@ function macroBar(label,val,target){
   return `<div><div class="nut-bar-top"><span>${label}</span><span>${val} / ${target}g</span></div><div class="nut-bar-track"><div class="nut-bar-fill" style="width:${pct}%"></div></div></div>`;
 }
 function mealTotals(meal){return nutritionTotals({meals:[meal]})}
+function nutritionTrendCardHTML(trend){
+  const wt=trend.weightChange===null?'No scale trend':`${trend.weightChange>0?'+':''}${trend.weightChange} kg`;
+  const delta=`${trend.calorieDelta>0?'+':''}${trend.calorieDelta} kcal/day`;
+  return `<div class="nut-card">
+    <div class="nut-kicker">7-day nutrition trend</div>
+    <div class="nut-cal-row" style="align-items:flex-start">
+      <div><div class="nut-cal" style="font-size:38px">${trend.avgCalories||0}<span>avg kcal</span></div><div class="nut-meal-sub">${trend.loggedDays}/7 logged - ${trend.completeDays}/7 complete</div></div>
+      <button class="nut-pill">${wt}</button>
+    </div>
+    <div class="nut-meal-sub">Average macros: ${trend.avgProtein}P / ${trend.avgCarbs}C / ${trend.avgFat}F</div>
+    <div class="nut-meal-sub">Average target delta: ${delta}</div>
+  </div>`;
+}
 function renderNutrition(){
   const el=document.getElementById('nutritionContent');
   if(!el)return;
@@ -3968,6 +4069,7 @@ function renderNutrition(){
   const target=nutritionTarget(day);
   const remaining=Math.max(0,target.calories-totals.calories);
   const coach=nutritionCoachSummary();
+  const trend=coach.trend;
   const meals=day.meals.map(m=>{
     const mt=mealTotals(m);
     const sub=mt.calories?`${mt.calories} kcal · ${mt.protein}P / ${mt.carbs}C / ${mt.fat}F`:'No items yet';
@@ -3987,6 +4089,7 @@ function renderNutrition(){
       </div>
     </div>
     <div class="nut-card"><div class="nut-kicker">Meals</div>${meals}</div>
+    ${nutritionTrendCardHTML(trend)}
     <div class="nut-card"><div class="nut-kicker">Coach · ${coach.confidence} confidence</div>${coach.lines.map(l=>`<div class="nut-meal-sub" style="margin-bottom:6px">${esc(l)}</div>`).join('')}<button class="mini" onclick="openNutritionTargets()">Targets</button></div>
     <button class="nut-add" onclick="openNutritionAdd('snacks')">Add food</button>
     <button class="nut-secondary" onclick="openRecipeBuilder()">Create recipe</button>
