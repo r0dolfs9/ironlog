@@ -209,3 +209,17 @@
 **Next:**
 - User phone smoke test for searchable food logging, recipe edit/update, weekly trends, coach text, theme switching, and PWA refresh behavior.
 - Later upgrades: barcode/photo/import food entry, richer branded food source strategy, recipe duplication, and visual nutrition charts.
+
+---
+
+### 2026-05-28 - Future app structure and logo polish
+
+**Done:**
+- Captured the future four-domain app direction in `docs/future-app-structure.md`: Fitness, Nutrition, Sleep, and Finances.
+- Documented the future home/domain launcher idea and the later exercise form library idea.
+- Removed the duplicate profile/avatar topbar button because it opened the same Settings sheet as the gear.
+- Replaced the app icon direction with a cleaner IronLog mark and added `favicon.svg`.
+
+**Next:**
+- Do not restructure the whole app shell until the current Fitness/Nutrition flows are smoke-tested.
+- Later: make the four-domain home screen, move current training into Fitness, move macro tracker into Nutrition, and add Coming Soon screens for Sleep and Finances.
