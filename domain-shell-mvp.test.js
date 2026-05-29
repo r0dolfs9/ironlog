@@ -5,6 +5,8 @@ const vm = require('vm');
 const html = fs.readFileSync('IronLog v3.html', 'utf8');
 const script = html.match(/<script>([\s\S]*)<\/script>/)[1];
 
+assert.ok(html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'), 'domain tab bar should use four equal columns');
+
 const store = new Map();
 const context = {
   console,
