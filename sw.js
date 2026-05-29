@@ -1,5 +1,5 @@
 // IronLog service worker
-const CACHE='ironlog-v18';
+const CACHE='ironlog-v19';
 const ASSETS=[
   './',
   './index.html',

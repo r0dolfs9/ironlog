@@ -1437,6 +1437,12 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
     <!-- NUTRITION -->
     <div class="page" id="page-nutrition"><div id="nutritionContent"></div></div>
 
+    <!-- SLEEP -->
+    <div class="page" id="page-sleep"><div id="sleepContent"></div></div>
+
+    <!-- FINANCE -->
+    <div class="page" id="page-finance"><div id="financeContent"></div></div>
+
     <!-- PROGRESS hub with sub-tabs -->
     <div class="page" id="page-progress-hub">
       <div class="subtabs" id="progressSubtabs">
@@ -1483,25 +1489,21 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 
   <!-- Bottom tab bar -->
   <nav class="v3-tabs" id="v3TabBar">
-    <button class="v3-tab active" id="tab-home" onclick="switchTab('home')">
+    <button class="v3-tab active" id="tab-fitness" onclick="switchTab('fitness')">
       <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
-      Home
-    </button>
-    <button class="v3-tab" id="tab-train" onclick="switchTab('train')">
-      <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><circle cx="4" cy="6.5" r="1.5"/><circle cx="4" cy="17.5" r="1.5"/><circle cx="20" cy="6.5" r="1.5"/><circle cx="20" cy="17.5" r="1.5"/></svg>
-      Train
+      Fitness
     </button>
     <button class="v3-tab" id="tab-nutrition" onclick="switchTab('nutrition')">
       <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V9"/><path d="M12 19V5"/><path d="M17 19v-7"/></svg>
       Nutrition
     </button>
-    <button class="v3-tab" id="tab-progress" onclick="switchTab('progress')">
-      <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-      Progress
+    <button class="v3-tab" id="tab-sleep" onclick="switchTab('sleep')">
+      <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a6.5 6.5 0 0 0 9.5 9.5Z"/></svg>
+      Sleep
     </button>
-    <button class="v3-tab" id="tab-history" onclick="switchTab('history')">
-      <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-      History
+    <button class="v3-tab" id="tab-finance" onclick="switchTab('finance')">
+      <svg class="v3-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v10H4z"/><path d="M8 11h.01"/><path d="M16 13h.01"/><path d="M12 7v10"/></svg>
+      Finance
     </button>
   </nav>
 
@@ -1660,11 +1662,13 @@ function loadDB(){
     if(!d.bwGoal)d.bwGoal=null;
     if(!d.settings)d.settings={restEnabled:true,restSecs:90};
     ensureNutrition(d);
+    ensureAppShell(d);
     return d;
   }
   const ex={};MUSCLES.forEach(m=>{ex[m]=DEF[m].map(n=>({id:uid(),name:n}))});
   const fresh={exercises:ex,workouts:[],bodyWeights:[],splits:DEFAULT_SPLITS.map(s=>JSON.parse(JSON.stringify(s))),bwGoal:null,settings:{restEnabled:true,restSecs:90}};
   ensureNutrition(fresh);
+  ensureAppShell(fresh);
   return fresh;
 }
 function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
@@ -1685,6 +1689,7 @@ function parseNum(v){return parseFloat(String(v||'').replace(',','.').trim())||0
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jsa(s){return esc(String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"))}
 function nRound(v){return Math.round((Number(v)||0)*10)/10}
+function moneyRound(v){return Math.round((Number(v)||0)*100)/100}
 function nutritionDefaults(){
   return {
     targets:{
@@ -1730,6 +1735,106 @@ function ensureNutrition(db){
   if(!Array.isArray(db.nutrition.recipes))db.nutrition.recipes=[];
   if(!Array.isArray(db.nutrition.checkins))db.nutrition.checkins=[];
   return db.nutrition;
+}
+function ensureAppShell(db){
+  if(!db.app)db.app={activeDomain:'fitness',version:1};
+  if(!db.app.activeDomain)db.app.activeDomain='fitness';
+  if(!db.app.version)db.app.version=1;
+  ensureSleep(db);
+  ensureFinance(db);
+  return db.app;
+}
+function ensureSleep(db){
+  if(!db.sleep)db.sleep={logs:[]};
+  if(!Array.isArray(db.sleep.logs))db.sleep.logs=[];
+  return db.sleep;
+}
+function ensureFinance(db){
+  if(!db.finance)db.finance={monthlyBudgets:{},expenses:[],categories:['Food','Transport','Home','Health','Fun','Other']};
+  if(!db.finance.monthlyBudgets)db.finance.monthlyBudgets={};
+  if(!Array.isArray(db.finance.expenses))db.finance.expenses=[];
+  if(!Array.isArray(db.finance.categories)||!db.finance.categories.length)db.finance.categories=['Food','Transport','Home','Health','Fun','Other'];
+  return db.finance;
+}
+function monthKey(date=today()){return String(date||today()).slice(0,7)}
+function sleepDurationMinutes(date,bedtime,wakeTime){
+  if(!bedtime||!wakeTime)return 0;
+  const start=new Date(`${date||today()}T${bedtime}`);
+  let end=new Date(`${date||today()}T${wakeTime}`);
+  if(Number.isNaN(start.getTime())||Number.isNaN(end.getTime()))return 0;
+  if(end<=start)end=new Date(end.getTime()+86400000);
+  return Math.round((end-start)/60000);
+}
+function saveSleepLog(patch){
+  ensureSleep(DB);
+  const date=patch.date||today();
+  const log={
+    id:patch.id||uid(),
+    date,
+    bedtime:patch.bedtime||'23:00',
+    wakeTime:patch.wakeTime||'07:00',
+    durationMinutes:sleepDurationMinutes(date,patch.bedtime||'23:00',patch.wakeTime||'07:00'),
+    quality:Math.max(1,Math.min(5,Math.round(parseNum(patch.quality)||3))),
+    notes:String(patch.notes||'').trim()
+  };
+  const idx=DB.sleep.logs.findIndex(x=>x.id===log.id);
+  if(idx>=0)DB.sleep.logs[idx]=log;else DB.sleep.logs.push(log);
+  DB.sleep.logs.sort((a,b)=>b.date.localeCompare(a.date));
+  return log;
+}
+function deleteSleepLog(id){
+  ensureSleep(DB);
+  DB.sleep.logs=DB.sleep.logs.filter(x=>x.id!==id);
+}
+function sleepWeeklySummary(end=today()){
+  ensureSleep(DB);
+  const endDate=new Date(end);
+  const startDate=new Date(endDate);startDate.setDate(endDate.getDate()-6);
+  const start=startDate.toISOString().slice(0,10);
+  const logs=DB.sleep.logs.filter(x=>x.date>=start&&x.date<=end);
+  const avgDurationMinutes=logs.length?Math.round(logs.reduce((a,x)=>a+(Number(x.durationMinutes)||0),0)/logs.length):0;
+  const avgQuality=logs.length?nRound(logs.reduce((a,x)=>a+(Number(x.quality)||0),0)/logs.length):0;
+  const bedMinutes=logs.map(x=>{
+    const [h,m]=String(x.bedtime||'0:0').split(':').map(Number);
+    const mins=(h||0)*60+(m||0);
+    return mins<720?mins+1440:mins;
+  });
+  const consistencyMinutes=bedMinutes.length>1?Math.max(...bedMinutes)-Math.min(...bedMinutes):0;
+  return {loggedDays:logs.length,avgDurationMinutes,avgQuality,consistencyMinutes,logs};
+}
+function setMonthlyBudget(month,amount){
+  ensureFinance(DB);
+  DB.finance.monthlyBudgets[monthKey(month+'-01')]=Math.max(0,moneyRound(amount));
+}
+function saveExpense(patch){
+  ensureFinance(DB);
+  const exp={
+    id:patch.id||uid(),
+    date:patch.date||today(),
+    category:patch.category||'Other',
+    merchant:String(patch.merchant||'').trim(),
+    note:String(patch.note||'').trim(),
+    amount:moneyRound(patch.amount)
+  };
+  if(!DB.finance.categories.includes(exp.category))DB.finance.categories.push(exp.category);
+  const idx=DB.finance.expenses.findIndex(x=>x.id===exp.id);
+  if(idx>=0)DB.finance.expenses[idx]=exp;else DB.finance.expenses.push(exp);
+  DB.finance.expenses.sort((a,b)=>b.date.localeCompare(a.date));
+  return exp;
+}
+function deleteExpense(id){
+  ensureFinance(DB);
+  DB.finance.expenses=DB.finance.expenses.filter(x=>x.id!==id);
+}
+function financeMonthSummary(month=monthKey()){
+  ensureFinance(DB);
+  const key=monthKey(month+'-01');
+  const items=DB.finance.expenses.filter(x=>monthKey(x.date)===key);
+  const total=moneyRound(items.reduce((a,x)=>a+(Number(x.amount)||0),0));
+  const budget=moneyRound(DB.finance.monthlyBudgets[key]||0);
+  const byCategory={};
+  items.forEach(x=>{byCategory[x.category]=moneyRound((byCategory[x.category]||0)+(Number(x.amount)||0))});
+  return {month:key,budget,total,remaining:moneyRound(budget-total),byCategory,items};
 }
 function emptyNutritionDay(targetType='training'){
   return {
@@ -3713,13 +3818,16 @@ function importData(e){
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ── Tab navigation ────────────────────────────────────────────────────────────
-let _activeTab = 'home';
+let _activeTab = 'fitness';
 let _activeProgressSub = 'progress';
 
-const _TAB_ORDER = ['home','train','nutrition','progress','history'];
+const _TAB_ORDER = ['fitness','nutrition','sleep','finance'];
 function switchTab(tab) {
+  const alias={home:'fitness'};
+  tab=alias[tab]||tab;
   const prevTab = _activeTab;
   _activeTab = tab;
+  if(DB&&DB.app){DB.app.activeDomain=tab;saveDB()}
   const prevIdx = _TAB_ORDER.indexOf(prevTab);
   const nextIdx = _TAB_ORDER.indexOf(tab);
   const goingRight = nextIdx > prevIdx;
@@ -3739,7 +3847,7 @@ function switchTab(tab) {
     prevPage.classList.remove('active');
   }
 
-  const pageMap = {home:'page-home',train:'page-train',nutrition:'page-nutrition',progress:'page-progress-hub',history:'page-history'};
+  const pageMap = {fitness:'page-home',train:'page-train',nutrition:'page-nutrition',sleep:'page-sleep',finance:'page-finance',progress:'page-progress-hub',history:'page-history'};
   const newPage = document.getElementById(pageMap[tab]);
   if (newPage) {
     animClasses.forEach(c => newPage.classList.remove(c));
@@ -3747,15 +3855,21 @@ function switchTab(tab) {
     setTimeout(() => newPage.classList.remove('tab-enter-right','tab-enter-left'), 300);
   }
 
-  if (tab === 'home') {
+  if (tab === 'fitness') {
     renderHome();
-    updateTopbar('home');
+    updateTopbar('fitness');
   } else if (tab === 'train') {
     renderTrainTab();
     updateTopbar('train');
   } else if (tab === 'nutrition') {
     renderNutrition();
     updateTopbar('nutrition');
+  } else if (tab === 'sleep') {
+    renderSleep();
+    updateTopbar('sleep');
+  } else if (tab === 'finance') {
+    renderFinance();
+    updateTopbar('finance');
   } else if (tab === 'progress') {
     switchProgressTab(_activeProgressSub, false);
     updateTopbar('progress');
@@ -3772,8 +3886,11 @@ function updateTopbar(tab) {
   const greet = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
   const labels = {
     home: `Good <em>${greet}</em>`,
+    fitness: `Good <em>${greet}</em>`,
     train: 'Train',
     nutrition: 'Nutrition',
+    sleep: 'Sleep',
+    finance: 'Finances',
     progress: 'Progress',
     history: 'History'
   };
@@ -4276,7 +4393,25 @@ function renderHome() {
     </div>`).join('')}
   </div>` : '';
 
+  const sleepSum=sleepWeeklySummary(today());
+  const finSum=financeMonthSummary(monthKey());
+  const domainShell=`<div class="hc-card" style="margin-bottom:14px">
+    <div class="hc-lbl">IronLog domains</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px">
+      <button class="nut-secondary" onclick="switchTab('fitness')" style="margin:0;text-align:left;border-color:rgba(255,107,53,.28)"><strong>Fitness</strong><br><span style="color:var(--t3);font-size:11px">${DB.workouts.length} logs</span></button>
+      <button class="nut-secondary" onclick="switchTab('nutrition')" style="margin:0;text-align:left;border-color:rgba(52,211,153,.24)"><strong>Nutrition</strong><br><span style="color:var(--t3);font-size:11px">${nutritionTotals(nutritionDay(today())).calories} kcal today</span></button>
+      <button class="nut-secondary" onclick="switchTab('sleep')" style="margin:0;text-align:left;border-color:rgba(76,139,245,.28)"><strong>Sleep</strong><br><span style="color:var(--t3);font-size:11px">${sleepSum.loggedDays}/7 logged</span></button>
+      <button class="nut-secondary" onclick="switchTab('finance')" style="margin:0;text-align:left;border-color:rgba(251,191,36,.28)"><strong>Finance</strong><br><span style="color:var(--t3);font-size:11px">${finSum.total} spent</span></button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px">
+      <button class="mini" onclick="switchTab('train')">Train</button>
+      <button class="mini" onclick="switchTab('progress')">Progress</button>
+      <button class="mini" onclick="switchTab('history')">History</button>
+    </div>
+  </div>`;
+
   pg.innerHTML = `<div class="hc-scroll">
+    ${domainShell}
     ${suggCard}
     <div class="hc-grid2">
       <div class="hc-card hc-stat" onclick="switchTab('progress')">
@@ -4298,6 +4433,82 @@ function renderHome() {
 }
 
 // ── Settings sheet (replaces sidebar footer) ──────────────────────────────────
+function renderSleep(){
+  const el=document.getElementById('sleepContent');if(!el)return;
+  ensureSleep(DB);
+  const summary=sleepWeeklySummary(today());
+  const avgH=Math.floor(summary.avgDurationMinutes/60),avgM=summary.avgDurationMinutes%60;
+  const rows=DB.sleep.logs.slice(0,14).map(l=>`<div class="nut-meal">
+    <div><div class="nut-meal-name">${fd(l.date)} - ${esc(l.bedtime)}-${esc(l.wakeTime)}</div><div class="nut-meal-sub">${Math.floor(l.durationMinutes/60)}h ${l.durationMinutes%60}m - quality ${l.quality}/5${l.notes?' - '+esc(l.notes):''}</div></div>
+    <button class="mini" onclick="deleteSleepEntry('${jsa(l.id)}')">Delete</button>
+  </div>`).join('');
+  el.innerHTML=`<div class="nut-wrap">
+    <div class="nut-card" style="border-color:rgba(76,139,245,.24)">
+      <div class="nut-kicker">7-day sleep</div>
+      <div class="nut-cal-row">
+        <div><div class="nut-cal" style="font-size:46px">${avgH}h ${avgM}<span>avg</span></div><div class="nut-meal-sub">${summary.loggedDays}/7 nights logged - ${summary.avgQuality}/5 quality - ${summary.consistencyMinutes}m bedtime spread</div></div>
+        <button class="nut-pill">MVP</button>
+      </div>
+    </div>
+    <div class="nut-card">
+      <div class="nut-kicker">Log sleep</div>
+      <div class="cc-fields"><div class="ccfw"><div class="cfl">Date</div><input class="cff" id="slDate" type="date" value="${today()}"></div><div class="ccfw"><div class="cfl">Quality 1-5</div><input class="cff" id="slQuality" inputmode="numeric" value="3"></div></div>
+      <div class="cc-fields"><div class="ccfw"><div class="cfl">Bedtime</div><input class="cff" id="slBed" type="time" value="23:00"></div><div class="ccfw"><div class="cfl">Wake</div><input class="cff" id="slWake" type="time" value="07:00"></div></div>
+      <input class="sh-inp" id="slNotes" placeholder="Notes" style="margin:0 0 12px">
+      <button class="nut-add" onclick="saveSleepFromUI()">Save sleep</button>
+    </div>
+    <div class="nut-card"><div class="nut-kicker">Recent sleep</div>${rows||'<div class="nut-meal-sub">No sleep logs yet.</div>'}</div>
+  </div>`;
+}
+function saveSleepFromUI(){
+  saveSleepLog({date:document.getElementById('slDate')?.value,bedtime:document.getElementById('slBed')?.value,wakeTime:document.getElementById('slWake')?.value,quality:document.getElementById('slQuality')?.value,notes:document.getElementById('slNotes')?.value});
+  saveDB();renderSleep();toast('Sleep saved');
+}
+function deleteSleepEntry(id){deleteSleepLog(id);saveDB();renderSleep();toast('Sleep deleted')}
+
+function renderFinance(){
+  const el=document.getElementById('financeContent');if(!el)return;
+  ensureFinance(DB);
+  const month=monthKey();
+  const summary=financeMonthSummary(month);
+  const cats=DB.finance.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  const catRows=Object.entries(summary.byCategory).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="nut-meal"><div><div class="nut-meal-name">${esc(c)}</div><div class="nut-meal-sub">This month</div></div><div class="nut-pill">${v}</div></div>`).join('');
+  const rows=summary.items.slice(0,30).map(x=>`<div class="nut-meal">
+    <div><div class="nut-meal-name">${esc(x.merchant||x.category)} - ${nRound(x.amount)}</div><div class="nut-meal-sub">${fd(x.date)} - ${esc(x.category)}${x.note?' - '+esc(x.note):''}</div></div>
+    <button class="mini" onclick="deleteExpenseEntry('${jsa(x.id)}')">Delete</button>
+  </div>`).join('');
+  el.innerHTML=`<div class="nut-wrap">
+    <div class="nut-card" style="border-color:rgba(251,191,36,.24)">
+      <div class="nut-kicker">Monthly spend - ${month}</div>
+      <div class="nut-cal-row">
+        <div><div class="nut-cal" style="font-size:46px">${summary.remaining}<span>left</span></div><div class="nut-meal-sub">${summary.total} spent / ${summary.budget||0} budget</div></div>
+        <button class="nut-pill">Manual</button>
+      </div>
+    </div>
+    <div class="nut-card">
+      <div class="nut-kicker">Budget</div>
+      <div class="cc-fields"><div class="ccfw"><div class="cfl">Month</div><input class="cff" id="fnMonth" type="month" value="${month}"></div><div class="ccfw"><div class="cfl">Budget</div><input class="cff" id="fnBudget" inputmode="decimal" value="${summary.budget||''}"></div></div>
+      <button class="nut-secondary" onclick="saveBudgetFromUI()">Save budget</button>
+    </div>
+    <div class="nut-card">
+      <div class="nut-kicker">Add expense</div>
+      <div class="cc-fields"><div class="ccfw"><div class="cfl">Date</div><input class="cff" id="exDate" type="date" value="${today()}"></div><div class="ccfw"><div class="cfl">Amount</div><input class="cff" id="exAmount" inputmode="decimal" placeholder="12.50"></div></div>
+      <select class="sh-inp" id="exCat" style="margin-bottom:12px">${cats}</select>
+      <input class="sh-inp" id="exMerchant" placeholder="Merchant" style="margin-bottom:12px">
+      <input class="sh-inp" id="exNote" placeholder="Note" style="margin-bottom:12px">
+      <button class="nut-add" onclick="saveExpenseFromUI()">Add expense</button>
+    </div>
+    <div class="nut-card"><div class="nut-kicker">Category split</div>${catRows||'<div class="nut-meal-sub">No spending this month.</div>'}</div>
+    <div class="nut-card"><div class="nut-kicker">Recent expenses</div>${rows||'<div class="nut-meal-sub">No expenses yet.</div>'}</div>
+  </div>`;
+}
+function saveBudgetFromUI(){setMonthlyBudget(document.getElementById('fnMonth')?.value,document.getElementById('fnBudget')?.value);saveDB();renderFinance();toast('Budget saved')}
+function saveExpenseFromUI(){
+  saveExpense({date:document.getElementById('exDate')?.value,category:document.getElementById('exCat')?.value,merchant:document.getElementById('exMerchant')?.value,note:document.getElementById('exNote')?.value,amount:document.getElementById('exAmount')?.value});
+  saveDB();renderFinance();toast('Expense saved');
+}
+function deleteExpenseEntry(id){deleteExpense(id);saveDB();renderFinance();toast('Expense deleted')}
+
 function showSettingsSheet() {
   const on = DB.settings?.restEnabled !== false;
   document.getElementById('shTitle').textContent = 'Settings';
