@@ -225,3 +225,20 @@
 **Next:**
 - Do not restructure the whole app shell until the current Fitness/Nutrition flows are smoke-tested.
 - Later: make the four-domain home screen, move current training into Fitness, move macro tracker into Nutrition, and add Coming Soon screens for Sleep and Finances.
+
+---
+
+### 2026-05-28 - Four-domain shell MVP slice
+
+**Done:**
+- Created isolated branch/worktree `four-domain-rebuild` for the shell rebuild.
+- Added DB migrations/defaults for `app`, `sleep`, and `finance` while preserving existing Fitness/Nutrition data.
+- Replaced the bottom navigation with four domains: Fitness, Nutrition, Sleep, and Finance.
+- Added Sleep MVP: bedtime, wake time, quality, notes, duration calculation, 7-day summary, recent log list, and delete.
+- Added Finance MVP: monthly budget, manual expenses, categories, monthly total, remaining budget, category split, and delete.
+- Added `domain-shell-mvp.test.js` covering shell defaults, overnight sleep duration, weekly sleep summary, budget totals, category totals, and deletion.
+- Synced `IronLog v3.html` to `index.html` and bumped service worker cache to `ironlog-v19`.
+
+**Next:**
+- Manual Android and iPhone PWA smoke test of the new four-domain nav, Sleep logging, Finance logging, and old Fitness/Nutrition flows.
+- Continue modular split after the shell MVP is visually verified on phone.
