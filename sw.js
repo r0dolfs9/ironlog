@@ -1,8 +1,9 @@
 // IronLog service worker
-const CACHE='ironlog-v19';
+const CACHE='ironlog-v20';
 const ASSETS=[
   './',
   './index.html',
+  './app-core.js',
   './favicon.svg',
   './manifest.json',
   './icon-192.png',

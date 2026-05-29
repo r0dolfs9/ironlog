@@ -242,3 +242,19 @@
 **Next:**
 - Manual Android and iPhone PWA smoke test of the new four-domain nav, Sleep logging, Finance logging, and old Fitness/Nutrition flows.
 - Continue modular split after the shell MVP is visually verified on phone.
+
+---
+
+### 2026-05-29 - Modular foundation slice 1
+
+**Done:**
+- Verified the live GitHub Pages app is serving the four-domain shell and `ironlog-v19`.
+- Fixed the domain bottom nav grid from five columns to four columns and added regression coverage for it.
+- Started the careful modular split with `app-core.js`, a shared UMD/CommonJS core for shell, Sleep, and Finance pure logic.
+- Added `app-core.test.js` covering shell defaults, sleep duration/weekly summaries, finance budgets/expenses, deletion, and money rounding.
+- Loaded `app-core.js` from the app shell, added it to the service worker asset list, synced `index.html`, and bumped cache to `ironlog-v20`.
+
+**Next:**
+- Merge/push the modular foundation slice after review.
+- Continue extracting storage/import/export helpers into a tested module.
+- Then extract Fitness calculation helpers before changing more UI.
