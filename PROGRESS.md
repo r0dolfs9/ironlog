@@ -3,9 +3,9 @@
 ## Current source of truth
 - **`IronLog v3.html`** - active development source. Edit this first.
 - **`index.html`** - live GitHub Pages entry point. Keep synced with `IronLog v3.html`.
-- **`sw.js`** - service worker cache: `ironlog-v16`.
+- **`sw.js`** - service worker cache: `ironlog-v18`.
 - **`manifest.json`** - PWA manifest.
-- **`nutrition-stage1.test.js` / `nutrition-stage2.test.js` / `nutrition-stage3.test.js` / `nutrition-stage4.test.js`** - nutrition regression tests.
+- **`nutrition-stage1.test.js` through `nutrition-stage5.test.js`** - nutrition regression tests.
 
 ## Live URL
 **r0dolfs9.github.io/ironlog** - currently on v3 with gesture controls, Nutrition, saved foods, targets, coach handoff, theme switching, and cooked-weight recipe builder.
@@ -74,7 +74,7 @@
 
 ## Deploy checklist
 
-### Browser verification (do first — v3 not yet on GitHub Pages)
+### Browser verification before next release
 - [ ] Home: 5 dashboard cards load (or warm empty states)
 - [ ] Train: split pills + exercise list; tap exercise → sc3 big-card set logging
 - [ ] Set card: big weight + reps inputs, RPE pills 6–10, done button
@@ -92,9 +92,10 @@
 
 ### Deploy steps
 1. Run browser verification checklist above
-2. `cp "IronLog v3.html" index.html`
-3. In `sw.js` bump `CACHE` const to `ironlog-v9`
-4. `git add -A && git commit -m "v3: full redesign — all 25 steps" && git push`
+2. Copy `IronLog v3.html` to `index.html`
+3. In `sw.js`, bump `CACHE` to the next version after the current `ironlog-v18`
+4. Run `nutrition-stage1.test.js` through `nutrition-stage5.test.js`
+5. Commit and push the release
 
 ---
 
@@ -180,14 +181,14 @@
 - Starter food database is included as generic USDA FoodData Central-style per-100g foods. Branded/package foods should still use label values as the source of truth.
 - Theme switching is implemented in Settings with persistent app themes.
 - Cooked-weight recipe builder is implemented: create recipes, add ingredient macros, enter cooked weight, save, and log recipe portions by grams.
-- `IronLog v3.html` and `index.html` are synced; `sw.js` cache is `ironlog-v16`.
+- `IronLog v3.html` and `index.html` are synced; latest known `sw.js` cache is `ironlog-v18`.
 - Old tracked HTML references were moved out of the repo root into `archive/` so the root shows only active app files, docs, tests, and assets.
 
 **Current active files:**
 - `IronLog v3.html` - edit this first.
 - `index.html` - live GitHub Pages entry point, synced from v3.
 - `sw.js` - service worker cache.
-- `nutrition-stage1.test.js` through `nutrition-stage4.test.js` - nutrition regression tests.
+- `nutrition-stage1.test.js` through `nutrition-stage5.test.js` - nutrition regression tests.
 
 **Next:**
 - User phone smoke test: install/open fresh app, confirm Nutrition, Add Food, saved foods, recipe builder, theme switching, and AI handoff export behave correctly.
@@ -219,6 +220,7 @@
 - Documented the future home/domain launcher idea and the later exercise form library idea.
 - Removed the duplicate profile/avatar topbar button because it opened the same Settings sheet as the gear.
 - Replaced the app icon direction with a cleaner IronLog mark and added `favicon.svg`.
+- Bumped `sw.js` cache to `ironlog-v18`.
 
 **Next:**
 - Do not restructure the whole app shell until the current Fitness/Nutrition flows are smoke-tested.
