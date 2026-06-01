@@ -3,6 +3,8 @@ const fs = require('fs');
 const vm = require('vm');
 
 const html = fs.readFileSync('IronLog v3.html', 'utf8');
+const storageScript = fs.readFileSync('app-storage.js', 'utf8');
+const fitnessScript = fs.readFileSync('app-fitness.js', 'utf8');
 const script = html.match(/<script>([\s\S]*)<\/script>/)[1];
 
 assert.ok(html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'), 'domain tab bar should use four equal columns');
@@ -33,6 +35,8 @@ const context = {
 };
 context.globalThis = context;
 vm.createContext(context);
+vm.runInContext(storageScript, context);
+vm.runInContext(fitnessScript, context);
 vm.runInContext(script, context);
 vm.runInContext('DB = loadDB();', context);
 

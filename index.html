@@ -19,6 +19,8 @@
 <link rel="shortcut icon" href="icon-192.png">
 <title>IronLog</title>
 <script src="app-core.js"></script>
+<script src="app-storage.js"></script>
+<script src="app-fitness.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1649,13 +1651,12 @@ const DEF = {
 // ── Profile stubs (multi-profile removed; single-profile only) ────────────────
 function getProfiles(){return[]}
 function getActiveProfile(){return null}
-function dbKey(){return 'il4__default'}
+function dbKey(){return IronLogStorage.dbKey()}
 
 // ── Database ──────────────────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function loadDB(){
-  let d=JSON.parse(localStorage.getItem(dbKey())||'null');
-  if(!d){const old=localStorage.getItem('il4');if(old){d=JSON.parse(old);localStorage.setItem(dbKey(),old)}}
+  let d=IronLogStorage.readStoredDB(localStorage,dbKey()).db;
   if(d){
     if(!d.exercises.forearms)d.exercises.forearms=DEF.forearms.map(n=>({id:uid(),name:n}));
     if(!d.bodyWeights)d.bodyWeights=[];
@@ -1672,7 +1673,7 @@ function loadDB(){
   ensureAppShell(fresh);
   return fresh;
 }
-function saveDB(){localStorage.setItem(dbKey(),JSON.stringify(DB))}
+function saveDB(){IronLogStorage.writeStoredDB(localStorage,dbKey(),DB)}
 let DB;
 let openCards={},setCounts={},addSheetCat=null,curSplit=null,cardioOpen=false,chartInst={};
 let _nutritionMealId='snacks';
@@ -1686,7 +1687,7 @@ function cv(name){return getComputedStyle(document.documentElement).getPropertyV
 function cc(cat){return cv(CAT_VAR[cat]||'--acc')}
 function today(){return new Date().toISOString().slice(0,10)}
 function fd(d){if(!d)return'';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
-function parseNum(v){return parseFloat(String(v||'').replace(',','.').trim())||0}
+function parseNum(v){return IronLogFitness.parseTrainingNumber(v)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jsa(s){return esc(String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"))}
 function nRound(v){return Math.round((Number(v)||0)*10)/10}
@@ -2061,8 +2062,8 @@ function nutritionMarkdownLines(){
   lines.push('');
   return lines;
 }
-function vol(sets){return sets.reduce((a,s)=>a+parseNum(s.reps)*parseNum(s.weight),0)}
-function maxWt(sets){return Math.max(0,...sets.map(s=>parseNum(s.weight)))}
+function vol(sets){return IronLogFitness.setVolume(sets)}
+function maxWt(sets){return IronLogFitness.maxSetWeight(sets)}
 function toast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
@@ -3183,13 +3184,7 @@ function renderPRs(){
 </div>`;
     return;
   }
-  const byEx=new Map();
-  nonCardio.forEach(w=>{
-    const m=maxWt(w.sets);if(!m)return;
-    const cur=byEx.get(w.exId);
-    if(!cur||m>cur.weight){byEx.set(w.exId,{exId:w.exId,name:w.name,cat:w.cat,weight:m,date:w.date,sets:w.sets})}
-  });
-  const list=[...byEx.values()].sort((a,b)=>b.weight-a.weight);
+  const list=IronLogFitness.personalRecords(DB.workouts);
   // Podium: top 3
   const medals=['🥇','🥈','🥉'];
   const podiumOrder=[1,0,2]; // silver left, gold center, bronze right
@@ -3271,14 +3266,14 @@ function renderProgressStatsHeader(period){
   const cs=curStart.toISOString().slice(0,10);
   const ps=prevStart.toISOString().slice(0,10);
   const pe=prevEnd.toISOString().slice(0,10);
-  const curW=DB.workouts.filter(w=>w.date>=cs&&w.date<=td);
-  const prevW=DB.workouts.filter(w=>w.date>=ps&&w.date<=pe);
-  const curSess=[...new Set(curW.map(w=>w.date))].length;
-  const prevSess=[...new Set(prevW.map(w=>w.date))].length;
-  const curVol=Math.round(curW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+vol(w.sets),0));
-  const prevVol=Math.round(prevW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+vol(w.sets),0));
-  const curSets=curW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+w.sets.length,0);
-  const prevSets=prevW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+w.sets.length,0);
+  const curStats=IronLogFitness.trainingStats(DB.workouts,cs,td);
+  const prevStats=IronLogFitness.trainingStats(DB.workouts,ps,pe);
+  const curSess=curStats.sessions;
+  const prevSess=prevStats.sessions;
+  const curVol=Math.round(curStats.volume);
+  const prevVol=Math.round(prevStats.volume);
+  const curSets=curStats.sets;
+  const prevSets=prevStats.sets;
   function fmt(cur,prv){
     const d=cur-prv;if(!prv&&!cur)return'';
     const sign=d>0?'+':'';const col=d>0?'var(--success)':d<0?'var(--red)':'var(--t3)';
@@ -3323,7 +3318,7 @@ function renderProgressRadar(period='week'){
   const curW=DB.workouts.filter(w=>w.date>=cs&&w.date<=td&&w.cat!=='cardio');
   if(!curW.length){wrap.innerHTML='';return;}
   const freq={};MUSCLES.forEach(m=>{freq[m]=0});
-  curW.forEach(w=>{if(freq[w.cat]!==undefined)freq[w.cat]++;});
+  Object.entries(IronLogFitness.muscleFrequency(DB.workouts,cs,td)).forEach(([cat,count])=>{if(freq[cat]!==undefined)freq[cat]=count});
   const activeMuscles=MUSCLES.filter(m=>freq[m]>0);
   if(activeMuscles.length<3){wrap.innerHTML='';return;}
   const labels=activeMuscles.map(m=>CAT_LBL[m]||m);
@@ -3635,36 +3630,23 @@ function openSummary(spId){
     document.getElementById('sumBox').innerHTML=`<div class="sum-hd"><div class="sum-title">Summary</div><button class="sum-close" onclick="closeSummary()">&#10005;</button></div><div style="text-align:center;padding:50px 0;color:var(--t3)">No exercises logged today yet.</div>`;
     document.getElementById('sumOv').classList.add('open');return;
   }
-  const nonCardio=todayAll.filter(w=>w.cat!=='cardio');
-  const totalVol=nonCardio.reduce((a,w)=>a+vol(w.sets),0);
-  const totalSets=nonCardio.reduce((a,w)=>a+w.sets.length,0);
-  const muscles=[...new Set(nonCardio.map(w=>w.cat))];
-  const prs=nonCardio.filter(w=>{
-    const prevBest=Math.max(0,...DB.workouts.filter(x=>x.exId===w.exId&&x.id!==w.id&&new Date(x.date)<new Date(td)).map(x=>maxWt(x.sets)));
-    return maxWt(w.sets)>prevBest&&maxWt(w.sets)>0;
-  });
-  const byEx=new Map();
-  nonCardio.forEach(w=>{if(!byEx.has(w.exId))byEx.set(w.exId,{name:w.name,cat:w.cat,sets:w.sets,notes:w.notes,id:w.id});});
-  const prevSess=DB.workouts.filter(w=>w.splitId===spId&&w.date<td);
-  const lastDate=[...new Set(prevSess.map(w=>w.date))].sort().reverse()[0];
-  const lastAll=lastDate?DB.workouts.filter(w=>w.splitId===spId&&w.date===lastDate):[];
-  const todayVolMap=new Map();nonCardio.forEach(w=>todayVolMap.set(w.exId,(todayVolMap.get(w.exId)||0)+vol(w.sets)));
-  const lastVolMap=new Map();lastAll.filter(w=>w.cat!=='cardio').forEach(w=>lastVolMap.set(w.exId,(lastVolMap.get(w.exId)||0)+vol(w.sets)));
+  const summary=IronLogFitness.sessionSummary(DB.workouts,spId,td);
+  const {totalSets,muscles,prs}=summary;
   let html=`<div class="sum-hd"><div class="sum-title">${sp?.name||'Summary'}</div><button class="sum-close" onclick="closeSummary()">&#10005;</button></div>
   <div class="sum-date">${fd(td)}</div>
   <div class="sum-stats">
-    <div class="sum-stat"><div class="sum-stat-val">${(()=>{const ws=todayAll.filter(w=>w.sessionStart&&w.savedAt);if(!ws.length)return '—';const start=Math.min(...ws.map(w=>w.sessionStart));const end=Math.max(...ws.map(w=>w.savedAt||w.sessionStart));const m=Math.max(1,Math.round((end-start)/60000));return m+'m'})()}</div><div class="sum-stat-lbl">Duration</div></div>
+    <div class="sum-stat"><div class="sum-stat-val">${summary.durationMinutes?summary.durationMinutes+'m':'—'}</div><div class="sum-stat-lbl">Duration</div></div>
     <div class="sum-stat"><div class="sum-stat-val">${prs.length}</div><div class="sum-stat-lbl">PRs</div></div>
-    <div class="sum-stat"><div class="sum-stat-val">${byEx.size}</div><div class="sum-stat-lbl">Exercises</div></div>
+    <div class="sum-stat"><div class="sum-stat-val">${summary.exercises.length}</div><div class="sum-stat-lbl">Exercises</div></div>
     <div class="sum-stat"><div class="sum-stat-val">${totalSets}</div><div class="sum-stat-lbl">Sets</div></div>
   </div>`;
   if(muscles.length){
     html+=`<div class="sum-mg"><div class="sum-mg-lbl">Muscles Worked</div><div class="sum-mg-chips">${muscles.map(m=>`<div class="sum-mg-chip" style="color:${cc(m)};border-color:${cc(m)}44">${CAT_LBL[m]||m}</div>`).join('')}</div></div>`;
   }
   html+=`<div class="sum-sec"><div class="sum-sec-lbl" style="color:var(--t3)">Exercises</div>`;
-  byEx.forEach((w,exId)=>{
-    const isPR=prs.find(p=>p.exId===exId);
-    const todayV=todayVolMap.get(exId)||0;const lastV=lastVolMap.get(exId)||0;
+  summary.exercises.forEach(w=>{
+    const isPR=prs.find(p=>p.exId===w.exId);
+    const todayV=w.todayVolume||0;const lastV=w.lastVolume||0;
     let prog='';
     if(lastV>0){
       const diff=todayV-lastV;const pct=Math.round(Math.abs(diff)/lastV*100);
@@ -3707,18 +3689,18 @@ function renderRecapContent(period){
   if(period==='week')prev.setDate(prev.getDate()-7);
   else prev.setMonth(prev.getMonth()-1);
   const prevEnd=new Date(startDate);prevEnd.setDate(prevEnd.getDate()-1);
-  const curW=DB.workouts.filter(w=>w.date>=startStr&&w.date<=td);
-  const prevW=DB.workouts.filter(w=>w.date>=prev.toISOString().slice(0,10)&&w.date<=prevEnd.toISOString().slice(0,10));
-  const curSessions=[...new Set(curW.map(w=>w.date))].length;
-  const prevSessions=[...new Set(prevW.map(w=>w.date))].length;
-  const curVol=Math.round(curW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+vol(w.sets),0));
-  const prevVol=Math.round(prevW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+vol(w.sets),0));
-  const curSets=curW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+w.sets.length,0);
-  const prevSets=prevW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+w.sets.length,0);
-  const curPRs=curW.filter(w=>w.cat!=='cardio'&&w.exId).filter(w=>{
-    const prevBest=Math.max(0,...DB.workouts.filter(x=>x.exId===w.exId&&new Date(x.date)<new Date(w.date)).map(x=>maxWt(x.sets)));
-    return maxWt(w.sets)>prevBest&&maxWt(w.sets)>0;
-  }).length;
+  const prevStartStr=prev.toISOString().slice(0,10);
+  const prevEndStr=prevEnd.toISOString().slice(0,10);
+  const curStats=IronLogFitness.trainingStats(DB.workouts,startStr,td);
+  const prevStats=IronLogFitness.trainingStats(DB.workouts,prevStartStr,prevEndStr);
+  const curW=curStats.workouts;
+  const curSessions=curStats.sessions;
+  const prevSessions=prevStats.sessions;
+  const curVol=Math.round(curStats.volume);
+  const prevVol=Math.round(prevStats.volume);
+  const curSets=curStats.sets;
+  const prevSets=prevStats.sets;
+  const curPRs=IronLogFitness.personalRecordCount(DB.workouts,startStr,td);
   function fmtVol(kg){return kg>=1000?(kg/1000).toFixed(1)+'t':kg+'kg'}
   function delta(cur,prv,fmt){
     if(!prv&&prv!==0)return'';const d=cur-prv;const sign=d>0?'+':'';
@@ -3745,7 +3727,7 @@ function renderRecapContent(period){
     </div>`;
   }
   // Highlights
-  const muscleFreq={};curW.filter(w=>w.cat!=='cardio').forEach(w=>{muscleFreq[w.cat]=(muscleFreq[w.cat]||0)+1});
+  const muscleFreq=IronLogFitness.muscleFrequency(DB.workouts,startStr,td);
   const topMuscle=Object.entries(muscleFreq).sort((a,b)=>b[1]-a[1])[0];
   let hlItems='';
   if(curPRs>0)hlItems+=`<div class="rc3-hl-item green"><div class="rc3-hl-icon">🏆</div><div><div class="rc3-hl-title">${curPRs} Personal Record${curPRs!==1?'s':''}</div><div class="rc3-hl-sub">New bests set this ${period}</div></div></div>`;
@@ -3792,18 +3774,17 @@ function renderRecapContent(period){
 
 // ── Export / Import ───────────────────────────────────────────────────────────
 function exportData(){
-  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const blob=new Blob([IronLogStorage.serializeBackup(DB)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`ironlog-${today()}.json`;a.click();
+  a.download=IronLogStorage.backupFilename(today());a.click();
 }
 function importData(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=ev=>{
     try{
-      const d=JSON.parse(ev.target.result);
-      if(!d.exercises||!d.workouts)throw new Error('Bad format');
-      localStorage.setItem(dbKey(),JSON.stringify(d));DB=loadDB();
+      const d=IronLogStorage.parseBackup(ev.target.result);
+      IronLogStorage.writeStoredDB(localStorage,dbKey(),d);DB=loadDB();
       renderSidebar();updateStreak();
       const first=DB.splits[0];
       if(first)navTo(first.id,first.name,first.color);
@@ -4250,38 +4231,16 @@ function renderHome() {
   const now = new Date();
 
   // ── 1. Today's suggestion: least-recently-trained split
-  let suggestion = null;
-  if (DB.splits.length) {
-    let picked = null, minDate = '9999-99-99';
-    DB.splits.forEach(sp => {
-      const last = DB.workouts.filter(w => w.splitId === sp.id).map(w => w.date).sort().pop() || '1970-01-01';
-      if (last < minDate) { minDate = last; picked = sp; }
-    });
-    if (picked) {
-      const exList = [];
-      picked.sections.forEach(sec => {
-        if (sec.type === 'muscle' || sec.type === 'exercises') {
-          const all = sec.type === 'muscle' ? (DB.exercises[sec.group] || []) : (DB.exercises[sec.group] || []).filter(e => (sec.list||[]).includes(e.name));
-          all.slice(0, 4).forEach(ex => {
-            const last = DB.workouts.filter(w => w.exId === ex.id).sort((a,b) => b.date.localeCompare(a.date))[0];
-            exList.push({ name: ex.name, last });
-          });
-        }
-      });
-      const daysSince = minDate === '1970-01-01' ? null : Math.floor((new Date(todayStr) - new Date(minDate)) / 86400000);
-      suggestion = { sp: picked, exList: exList.slice(0, 4), daysSince };
-    }
-  }
+  const suggestion = IronLogFitness.leastRecentSplitSuggestion(DB.splits, DB.exercises, DB.workouts, todayStr);
 
   // ── 2. Weekly volume + sparkline
-  const dayMs = 86400000;
-  const days7 = Array.from({length:7}, (_,i) => { const d=new Date(now); d.setDate(d.getDate()-(6-i)); return d.toISOString().slice(0,10); });
-  const days14_7 = Array.from({length:7}, (_,i) => { const d=new Date(now); d.setDate(d.getDate()-(13-i)); return d.toISOString().slice(0,10); });
-  const weekVol = days7.reduce((a,d) => a + DB.workouts.filter(w=>w.date===d).reduce((s,w)=>s+vol(w.sets),0), 0);
-  const prevVol = days14_7.reduce((a,d) => a + DB.workouts.filter(w=>w.date===d).reduce((s,w)=>s+vol(w.sets),0), 0);
-  const dayVols = days7.map(d => DB.workouts.filter(w=>w.date===d).reduce((s,w)=>s+vol(w.sets),0));
+  const weekSummary = IronLogFitness.weeklyVolumeSummary(DB.workouts, todayStr);
+  const days7 = weekSummary.days;
+  const weekVol = weekSummary.weekVolume;
+  const prevVol = weekSummary.previousVolume;
+  const dayVols = weekSummary.dayVolumes;
   const maxDV = Math.max(...dayVols, 1);
-  const volDeltaNum = prevVol > 0 ? ((weekVol - prevVol) / prevVol * 100) : null;
+  const volDeltaNum = weekSummary.deltaPercent;
   const volDeltaStr = volDeltaNum !== null ? (volDeltaNum >= 0 ? `↑ ${volDeltaNum.toFixed(1)}%` : `↓ ${Math.abs(volDeltaNum).toFixed(1)}%`) : '—';
   const volDeltaClass = volDeltaNum === null ? 'flat' : volDeltaNum >= 0 ? 'up' : 'dn';
   const weekVolDisp = weekVol >= 1000 ? (weekVol/1000).toFixed(1)+'k' : weekVol.toFixed(0);
@@ -4295,15 +4254,12 @@ function renderHome() {
   const todayDow = (now.getDay()+6)%7; // 0=Mon
 
   // ── 4. Body weight
-  const bwSorted = [...DB.bodyWeights].sort((a,b) => b.date.localeCompare(a.date));
-  const latBW = bwSorted[0];
-  const month30 = new Date(now); month30.setDate(now.getDate()-30);
-  const m30str = month30.toISOString().slice(0,10);
-  const oldBW = bwSorted.find(b => b.date <= m30str);
-  const bwDelta = latBW && oldBW ? (parseNum(latBW.weight) - parseNum(oldBW.weight)) : null;
+  const bwSnap = IronLogFitness.bodyWeightSnapshot(DB.bodyWeights, todayStr);
+  const latBW = bwSnap.latest;
+  const bwDelta = bwSnap.delta;
 
   // Sparkline path for BW (last 30 entries)
-  const bwPoints = bwSorted.slice(0,30).reverse();
+  const bwPoints = bwSnap.points;
   let bwSvg = '';
   if (bwPoints.length >= 2) {
     const vals = bwPoints.map(b => parseNum(b.weight));
@@ -4319,15 +4275,7 @@ function renderHome() {
   }
 
   // ── 5. Long lost
-  const longLost = [];
-  Object.values(DB.exercises).flat().forEach(ex => {
-    const last = DB.workouts.filter(w=>w.exId===ex.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
-    if (!last) return;
-    const ds = Math.floor((new Date(todayStr)-new Date(last.date))/dayMs);
-    if (ds >= 7) longLost.push({name:ex.name, date:last.date, ds});
-  });
-  longLost.sort((a,b)=>b.ds-a.ds);
-  const lostTop = longLost.slice(0,3);
+  const lostTop = IronLogFitness.longLostExercises(DB.exercises, DB.workouts, todayStr, 7, 3);
 
   // ── Render ────────────────────────────────────────────────────────────────
   const suggCard = suggestion ? (() => {
@@ -4594,23 +4542,17 @@ function exportMarkdown() {
   lines.push(`Exported: ${td}\n`);
 
   // --- Summary stats ---
-  const allW = DB.workouts.filter(w=>w.cat!=='cardio');
-  const totalSessions = [...new Set(allW.map(w=>w.date))].length;
-  const totalVol = Math.round(allW.reduce((a,w)=>a+vol(w.sets),0));
-  const totalSets = allW.reduce((a,w)=>a+w.sets.length,0);
+  const exportData = IronLogFitness.markdownExportData(DB.workouts, td);
+  const totalSessions = exportData.summary.totalSessions;
+  const totalVol = Math.round(exportData.summary.totalVolume);
+  const totalSets = exportData.summary.totalSets;
   lines.push(`## Summary`);
   lines.push(`- Total sessions: ${totalSessions}`);
   lines.push(`- Total volume: ${totalVol} kg`);
   lines.push(`- Total sets logged: ${totalSets}\n`);
 
   // --- Personal records ---
-  const byEx = new Map();
-  allW.forEach(w => {
-    const m = maxWt(w.sets); if (!m) return;
-    const cur = byEx.get(w.exId);
-    if (!cur || m > cur.weight) byEx.set(w.exId, {name:w.name,cat:w.cat,weight:m,date:w.date,sets:w.sets});
-  });
-  const prs = [...byEx.values()].sort((a,b)=>b.weight-a.weight);
+  const prs = exportData.personalRecords;
   lines.push(`## Personal Records`);
   prs.forEach(p => {
     const top = p.sets.find(s=>parseNum(s.weight)===p.weight);
@@ -4620,27 +4562,19 @@ function exportMarkdown() {
   lines.push('');
 
   // --- Last 8 weeks volume by muscle group ---
-  const eightWAgo = new Date(); eightWAgo.setDate(eightWAgo.getDate()-56);
-  const ewStr = eightWAgo.toISOString().slice(0,10);
-  const recent = allW.filter(w=>w.date>=ewStr);
-  const volByCat = {};
-  recent.forEach(w=>{volByCat[w.cat]=(volByCat[w.cat]||0)+vol(w.sets)});
   lines.push(`## Volume Last 8 Weeks (by muscle group)`);
-  Object.entries(volByCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,v])=>{
+  Object.entries(exportData.volumeByCategory).sort((a,b)=>b[1]-a[1]).forEach(([cat,v])=>{
     lines.push(`- ${CAT_LBL[cat]||cat}: ${Math.round(v)} kg`);
   });
   lines.push('');
 
   // --- Recent sessions (last 20) ---
-  const sessions = {};
-  DB.workouts.forEach(w=>{(sessions[w.date]=sessions[w.date]||[]).push(w)});
-  const sortedDates = Object.keys(sessions).sort((a,b)=>b.localeCompare(a)).slice(0,20);
-  lines.push(`## Recent Sessions (last ${sortedDates.length})`);
-  sortedDates.forEach(date=>{
-    const dayW = sessions[date];
-    const cats = [...new Set(dayW.map(w=>CAT_LBL[w.cat]||w.cat))].join(', ');
-    const dayVol = Math.round(dayW.filter(w=>w.cat!=='cardio').reduce((a,w)=>a+vol(w.sets),0));
-    lines.push(`\n### ${date} — ${cats}`);
+  lines.push(`## Recent Sessions (last ${exportData.recentSessions.length})`);
+  exportData.recentSessions.forEach(sess=>{
+    const dayW = sess.workouts;
+    const cats = sess.categories.map(cat=>CAT_LBL[cat]||cat).join(', ');
+    const dayVol = Math.round(sess.volume);
+    lines.push(`\n### ${sess.date} — ${cats}`);
     if (dayVol) lines.push(`Volume: ${dayVol} kg`);
     dayW.filter(w=>w.cat!=='cardio'&&w.exId).forEach(w=>{
       const setStr = w.sets.map(s=>`${parseNum(s.weight)}kg×${s.reps}`).join(', ');

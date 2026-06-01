@@ -3,12 +3,16 @@
 ## Current source of truth
 - **`IronLog v3.html`** - active development source. Edit this first.
 - **`index.html`** - live GitHub Pages entry point. Keep synced with `IronLog v3.html`.
-- **`sw.js`** - service worker cache: `ironlog-v18`.
+- **`app-core.js`** - shared tested core for shell, Sleep, and Finance pure logic.
+- **`app-storage.js`** - shared tested storage, JSON backup, and import validation helpers.
+- **`app-fitness.js`** - shared tested Fitness calculation helpers for parsing, set volume, max weight, period stats, PR counts, and muscle frequency.
+- **`sw.js`** - service worker cache. Current local release cache is `ironlog-v22`.
 - **`manifest.json`** - PWA manifest.
 - **`nutrition-stage1.test.js` through `nutrition-stage5.test.js`** - nutrition regression tests.
+- **`app-core.test.js`, `app-storage.test.js`, `app-fitness.test.js`, and `domain-shell-mvp.test.js`** - four-domain shell, core logic, and extracted helper regression tests.
 
 ## Live URL
-**r0dolfs9.github.io/ironlog** - currently on v3 with gesture controls, Nutrition, saved foods, targets, coach handoff, theme switching, and cooked-weight recipe builder.
+**r0dolfs9.github.io/ironlog** - currently a four-domain shell: Fitness, Nutrition, Sleep, and Finance. Fitness contains the existing v3 training flow; Nutrition contains macro tracking, saved foods, recipes, weekly trends, and coach handoff; Sleep and Finance are MVP tabs for manual logging and summaries.
 - **`icon-192.png` / `icon-512.png`** - standard PWA icons.
 - **`icon-maskable-192.png` / `icon-maskable-512.png`** - maskable variants.
 - **`archive/IronLog.html`** - v1 historical reference.
@@ -18,7 +22,7 @@
 
 ## How to publish to GitHub Pages
 - Repo: **`github.com/r0dolfs9/ironlog`** -> live at **`r0dolfs9.github.io/ironlog`**.
-- For app changes: update `IronLog v3.html`, copy it to `index.html`, bump `CACHE` in `sw.js`, run the nutrition tests, commit, and push.
+- For app changes: update `IronLog v3.html`, copy it to `index.html`, add any new runtime modules to `sw.js`, bump `CACHE`, run all relevant Node regression tests, commit, and push.
 - Do not edit files in `archive/` unless intentionally reviewing old versions.
 
 ---
@@ -75,27 +79,31 @@
 ## Deploy checklist
 
 ### Browser verification before next release
-- [ ] Home: 5 dashboard cards load (or warm empty states)
-- [ ] Train: split pills + exercise list; tap exercise → sc3 big-card set logging
+- [ ] Home/domain shell: Fitness, Nutrition, Sleep, and Finance tabs render without console errors.
+- [ ] Fitness: split pills + exercise list; tap exercise -> sc3 big-card set logging
 - [ ] Set card: big weight + reps inputs, RPE pills 6–10, done button
-- [ ] Save set → rest timer slides up as glass bottom sheet
-- [ ] PR save → triple-pulse haptic + 🏆 toast
-- [ ] Progress → Stats: comparison header + radar chart
-- [ ] Progress → Records: podium top-3 + grouped list
-- [ ] Progress → Body Weight: 72px serif + sparkline + goal bar
-- [ ] Progress → Recap: 2×2 glass stat grid + insight line
+- [ ] Save set -> rest timer slides up as glass bottom sheet
+- [ ] Nutrition: search starter/saved/recipe foods, log food, edit recipe, review 7-day trend.
+- [ ] Sleep: log overnight sleep, confirm duration/weekly summary/recent list/delete.
+- [ ] Finance: set monthly budget, add expense, confirm remaining/category summary/delete.
+- [ ] Progress -> Stats: comparison header + radar chart
+- [ ] Progress -> Records: podium top-3 + grouped list
+- [ ] Progress -> Body Weight: 72px serif + sparkline + goal bar
+- [ ] Progress -> Recap: stat grid + insight line
 - [ ] History: 12-week heatmap + session timeline
-- [ ] Settings gear: all 6 rows (profile, rest toggle+duration, export, import, AI export, new day)
-- [ ] AI Markdown export → downloads `.md` file
+- [ ] Settings gear: rest toggle+duration, export, import, AI export, new day
+- [ ] JSON export/import round trip works through `app-storage.js`.
+- [ ] AI Markdown export -> downloads `.md` file
 - [ ] Tab switches slide directionally with spring feel
 - [ ] No JS console errors
 
 ### Deploy steps
 1. Run browser verification checklist above
 2. Copy `IronLog v3.html` to `index.html`
-3. In `sw.js`, bump `CACHE` to the next version after the current `ironlog-v18`
-4. Run `nutrition-stage1.test.js` through `nutrition-stage5.test.js`
-5. Commit and push the release
+3. Add any new runtime files to `ASSETS` in `sw.js`
+4. In `sw.js`, bump `CACHE` to the next version after the current released cache
+5. Run `app-core.test.js`, `app-storage.test.js`, `app-fitness.test.js`, `domain-shell-mvp.test.js`, and `nutrition-stage1.test.js` through `nutrition-stage5.test.js`
+6. Commit and push the release
 
 ---
 
@@ -258,3 +266,64 @@
 - Merge/push the modular foundation slice after review.
 - Continue extracting storage/import/export helpers into a tested module.
 - Then extract Fitness calculation helpers before changing more UI.
+
+---
+
+### 2026-06-01 - Storage helper extraction and QA/doc refresh
+
+**Done:**
+- Added `docs/qa/2026-06-01-phone-qa.md` with the real-device Android Chrome PWA and iPhone Home Screen QA checklist.
+- Refreshed the source-of-truth and release checklist sections for the current four-domain shell, `app-core.js`, `app-storage.js`, and `ironlog-v20`.
+- Extracted storage, JSON backup serialization, import validation, legacy `il4` migration, and backup filename helpers into `app-storage.js`.
+- Added `app-storage.test.js` and updated `domain-shell-mvp.test.js` so the test harness loads the extracted storage module.
+- Synced `IronLog v3.html` to `index.html`, added `app-storage.js` to the service worker asset list, and bumped cache to `ironlog-v21`.
+
+**Next:**
+- Run the physical Android/iPhone QA pass and record findings in `docs/qa/2026-06-01-phone-qa.md`.
+- Continue with Fitness calculation helper extraction after the storage split is verified in the browser/PWA.
+
+---
+
+### 2026-06-01 - Fitness helper extraction slice 1
+
+**Done:**
+- Added `app-fitness.js` for pure Fitness calculations: training number parsing, set volume, max set weight, date-window stats, personal record count, and muscle frequency.
+- Added `app-fitness.test.js` and verified the test failed before the module existed, then passed after implementation.
+- Wired `IronLog v3.html` to load `app-fitness.js` and delegated existing `parseNum`, `vol`, and `maxWt` wrappers to the extracted helpers.
+- Replaced duplicated Progress and Recap summary math with `IronLogFitness.trainingStats`, `personalRecordCount`, and `muscleFrequency`.
+- Synced `IronLog v3.html` to `index.html`, added `app-fitness.js` to the service worker asset list, and bumped cache to `ironlog-v22`.
+- Updated VM-based test harnesses so they load `app-fitness.js` before executing the app script.
+
+**Next:**
+- Continue extracting additional Fitness pure logic carefully: home weekly volume/suggestion helpers, session summary helpers, and AI export PR/volume aggregation.
+- Run the physical Android/iPhone QA pass before any larger UI-sensitive refactor.
+
+---
+
+### 2026-06-01 - Fitness helper extraction slice 2
+
+**Done:**
+- Extended `app-fitness.js` with pure Home dashboard helpers: `weeklyVolumeSummary`, `leastRecentSplitSuggestion`, `bodyWeightSnapshot`, and `longLostExercises`.
+- Added tests for weekly volume/current-vs-previous data, least-recent split suggestion, body-weight 30-day comparison, and long-lost exercises.
+- Replaced inline `renderHome()` calculations with the tested helper calls while leaving the rendering markup unchanged.
+- Synced `IronLog v3.html` to `index.html`.
+- Verified `app-fitness`, `app-storage`, `app-core`, `domain-shell-mvp`, and nutrition stage 1-5 tests all pass.
+
+**Next:**
+- Continue with session summary helpers and AI export PR/volume aggregation.
+- Do the real Android/iPhone QA pass before changing UI-sensitive logging behavior.
+
+---
+
+### 2026-06-01 - Fitness helper extraction slice 3
+
+**Done:**
+- Extended `app-fitness.js` with pure session/export helpers: `sessionSummary`, `personalRecords`, `volumeByCategorySince`, `recentSessions`, and `markdownExportData`.
+- Added tests for today session summary totals, duration, PR detection, previous-session volume comparison, AI export totals, PR ordering, 8-week category volume, and recent session grouping.
+- Replaced `renderPRs()`, `openSummary()`, and `exportMarkdown()` aggregation logic with tested `IronLogFitness` helpers while preserving UI/export formatting.
+- Synced `IronLog v3.html` to `index.html`.
+- Verified `app-fitness`, `app-storage`, `app-core`, `domain-shell-mvp`, and nutrition stage 1-5 tests all pass.
+
+**Next:**
+- Stop further Fitness modular extraction until a real Android/iPhone QA pass validates the current v22 build.
+- After phone QA, decide whether the next IronLog task should be motion polish or Sleep/Finance MVP reality check.
