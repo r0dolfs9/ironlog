@@ -344,3 +344,15 @@
 **Next:**
 - Run the real Android/iPhone QA checklist for Fitness, Nutrition, Sleep, and Finance.
 - Confirm Sleep/Finance form ergonomics and delete affordances on real phones before more UI-sensitive work.
+
+---
+
+### 2026-06-01 - Release workflow checklist
+
+**Done:**
+- Added `docs/release-checklist.md` with a concrete IronLog publish path: source-of-truth order, preflight checks, required verification, publish steps, and ship blockers.
+- Kept the release checklist aligned with the current runtime files and `ironlog-v22` service worker cache.
+
+**Next:**
+- Use the release checklist before any future IronLog push.
+- Continue with real Android/iPhone QA when physical devices are available.
