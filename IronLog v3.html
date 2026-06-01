@@ -1810,13 +1810,15 @@ function setMonthlyBudget(month,amount){
 }
 function saveExpense(patch){
   ensureFinance(DB);
+  const amount=moneyRound(patch.amount);
+  if(amount<=0)throw new Error('Expense amount must be greater than 0');
   const exp={
     id:patch.id||uid(),
     date:patch.date||today(),
     category:patch.category||'Other',
     merchant:String(patch.merchant||'').trim(),
     note:String(patch.note||'').trim(),
-    amount:moneyRound(patch.amount)
+    amount
   };
   if(!DB.finance.categories.includes(exp.category))DB.finance.categories.push(exp.category);
   const idx=DB.finance.expenses.findIndex(x=>x.id===exp.id);
@@ -4453,7 +4455,9 @@ function renderFinance(){
 }
 function saveBudgetFromUI(){setMonthlyBudget(document.getElementById('fnMonth')?.value,document.getElementById('fnBudget')?.value);saveDB();renderFinance();toast('Budget saved')}
 function saveExpenseFromUI(){
-  saveExpense({date:document.getElementById('exDate')?.value,category:document.getElementById('exCat')?.value,merchant:document.getElementById('exMerchant')?.value,note:document.getElementById('exNote')?.value,amount:document.getElementById('exAmount')?.value});
+  try{
+    saveExpense({date:document.getElementById('exDate')?.value,category:document.getElementById('exCat')?.value,merchant:document.getElementById('exMerchant')?.value,note:document.getElementById('exNote')?.value,amount:document.getElementById('exAmount')?.value});
+  }catch(_){toast('Enter an expense amount');return}
   saveDB();renderFinance();toast('Expense saved');
 }
 function deleteExpenseEntry(id){deleteExpense(id);saveDB();renderFinance();toast('Expense deleted')}

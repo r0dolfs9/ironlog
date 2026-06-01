@@ -86,13 +86,15 @@
   function saveExpense(db,patch,uidFactory){
     ensureFinance(db);
     const makeId=uidFactory||(()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+    const amount=moneyRound(patch.amount);
+    if(amount<=0)throw new Error('Expense amount must be greater than 0');
     const exp={
       id:patch.id||makeId(),
       date:patch.date||new Date().toISOString().slice(0,10),
       category:patch.category||'Other',
       merchant:String(patch.merchant||'').trim(),
       note:String(patch.note||'').trim(),
-      amount:moneyRound(patch.amount)
+      amount
     };
     if(!db.finance.categories.includes(exp.category))db.finance.categories.push(exp.category);
     const idx=db.finance.expenses.findIndex(x=>x.id===exp.id);

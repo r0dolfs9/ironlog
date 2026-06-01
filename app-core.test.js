@@ -35,6 +35,8 @@ const food = core.saveExpense(db, { date: '2026-05-28', category: 'Food', mercha
 const transport = core.saveExpense(db, { date: '2026-05-29', category: 'Transport', amount: 8.15 }, idFactory);
 assert.strictEqual(food.amount, 42.35);
 assert.strictEqual(transport.amount, 8.15);
+assert.throws(() => core.saveExpense(db, { date: '2026-05-29', category: 'Other', amount: '' }, idFactory), /Expense amount must be greater than 0/);
+assert.throws(() => core.saveExpense(db, { date: '2026-05-29', category: 'Other', amount: 0 }, idFactory), /Expense amount must be greater than 0/);
 assert.deepStrictEqual(core.financeMonthSummary(db, '2026-05'), {
   month: '2026-05',
   budget: 600,

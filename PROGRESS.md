@@ -327,3 +327,20 @@
 **Next:**
 - Stop further Fitness modular extraction until a real Android/iPhone QA pass validates the current v22 build.
 - After phone QA, decide whether the next IronLog task should be motion polish or Sleep/Finance MVP reality check.
+
+---
+
+### 2026-06-01 - Sleep and Finance MVP reality check
+
+**Done:**
+- Reviewed Sleep and Finance MVP data flows, summaries, delete flows, and trust gaps.
+- Added `docs/qa/2026-06-01-sleep-finance-reality-check.md` with what is trustworthy, what was fixed, what must be checked on phone, and what can wait.
+- Fixed a Finance trust bug: blank or zero-value expenses are no longer saved.
+- Added `app-core.test.js` coverage for blank and zero expense rejection.
+- Updated the Finance UI to show `Enter an expense amount` and avoid saving invalid expense rows.
+- Synced `IronLog v3.html` to `index.html`.
+- Verified the full regression suite and matching source/live HTML hashes.
+
+**Next:**
+- Run the real Android/iPhone QA checklist for Fitness, Nutrition, Sleep, and Finance.
+- Confirm Sleep/Finance form ergonomics and delete affordances on real phones before more UI-sensitive work.
