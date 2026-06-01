@@ -1,23 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="IronLog icon">
   <defs>
-    <linearGradient id="bg" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1f1c16"/>
-      <stop offset="1" stop-color="#0a0908"/>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#241d16"></stop>
+      <stop offset=".55" stop-color="#0d0c0a"></stop>
+      <stop offset="1" stop-color="#080706"></stop>
+    </radialGradient>
+    <radialGradient id="molten" cx="50%" cy="58%" r="45%">
+      <stop offset="0" stop-color="#ff6b35" stop-opacity=".22"></stop>
+      <stop offset="1" stop-color="#ff6b35" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0" stop-color="#f4f5f7"></stop>
+      <stop offset=".12" stop-color="#cfd4da"></stop>
+      <stop offset=".42" stop-color="#8c9298"></stop>
+      <stop offset=".62" stop-color="#5a6066"></stop>
+      <stop offset=".86" stop-color="#33373c"></stop>
+      <stop offset="1" stop-color="#1a1c1f"></stop>
     </linearGradient>
-    <linearGradient id="iron" x1="88" y1="142" x2="424" y2="370" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#ffb38a"/>
-      <stop offset=".46" stop-color="#ff6b35"/>
-      <stop offset="1" stop-color="#d94b22"/>
-    </linearGradient>
+    <linearGradient id="hi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"></stop><stop offset="1" stop-color="#aeb4ba"></stop></linearGradient>
+    <linearGradient id="sh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b5056"></stop><stop offset="1" stop-color="#0e0f11"></stop></linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9bd"></stop><stop offset=".5" stop-color="#ff8a4d"></stop><stop offset="1" stop-color="#ff5a1f"></stop></linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <rect x="50" y="50" width="412" height="412" rx="92" fill="none" stroke="rgba(245,241,232,.12)" stroke-width="4"/>
-  <rect x="82" y="170" width="52" height="172" rx="24" fill="url(#iron)"/>
-  <rect x="144" y="140" width="42" height="232" rx="21" fill="#ff8a57"/>
-  <rect x="326" y="140" width="42" height="232" rx="21" fill="#ff8a57"/>
-  <rect x="378" y="170" width="52" height="172" rx="24" fill="url(#iron)"/>
-  <rect x="176" y="236" width="160" height="40" rx="20" fill="#f5f1e8"/>
-  <rect x="232" y="128" width="48" height="256" rx="24" fill="#f5f1e8"/>
-  <rect x="240" y="324" width="104" height="44" rx="22" fill="#f5f1e8"/>
-  <circle cx="256" cy="256" r="22" fill="#0a0908" opacity=".72"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"></rect>
+  <rect width="512" height="512" rx="112" fill="url(#molten)"></rect>
+  <rect x="50" y="50" width="412" height="412" rx="92" fill="none" stroke="rgba(245,241,232,.10)" stroke-width="4"></rect>
+  <g transform="translate(256,250) scale(1.86) translate(-100,-99)">
+    
+    <polygon points="100,34 170,104 144,104 100,56.36 56,104 30,104" fill="url(#face)"></polygon>
+    <polygon points="100,34 30,104 56,104 100,56.36" fill="url(#hi)" opacity="0.85"></polygon>
+    <polygon points="100,34 170,104 144,104 100,56.36" fill="url(#sh)" opacity="0.5"></polygon>
+    <polygon points="56,104 100,56.36 144,104 139,104 100,63.36 61,104" fill="url(#acc)" opacity="0.95"></polygon>
+    <polygon points="100,34 109,46 91,46" fill="#fff" opacity="0.55"></polygon>
+    
+    <polygon points="100,94 170,164 144,164 100,116.36 56,164 30,164" fill="url(#face)"></polygon>
+    <polygon points="100,94 30,164 56,164 100,116.36" fill="url(#hi)" opacity="0.85"></polygon>
+    <polygon points="100,94 170,164 144,164 100,116.36" fill="url(#sh)" opacity="0.5"></polygon>
+    <polygon points="56,164 100,116.36 144,164 139,164 100,123.36 61,164" fill="url(#acc)" opacity="0.95"></polygon>
+    <polygon points="100,94 109,106 91,106" fill="#fff" opacity="0.55"></polygon>
+  </g>
 </svg>

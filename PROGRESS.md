@@ -356,3 +356,16 @@
 **Next:**
 - Use the release checklist before any future IronLog push.
 - Continue with real Android/iPhone QA when physical devices are available.
+
+---
+
+### 2026-06-01 - Icon zip applied
+
+**Done:**
+- Inspected `C:\Users\User\Downloads\workout app.rudolfs.zip` and confirmed it contains updated icon assets, not a repo snapshot.
+- Replaced the repo icon set from the extracted zip: `favicon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, and `icon-maskable-512.png`.
+- Verified the repo icon files now match the extracted zip hashes.
+
+**Next:**
+- Commit and push the icon asset update.
+- Confirm the live PWA refreshes to the new icons after the next deploy/cache cycle.
