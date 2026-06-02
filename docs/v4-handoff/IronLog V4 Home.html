@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IronLog V4 — Today (Insights Home)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0908; --s1:#16140f; --s2:#1f1c16; --s3:#28251d;
+    --glass:rgba(28,25,20,0.64);
+    --border:rgba(245,241,232,0.08); --border-hi:rgba(245,241,232,0.16);
+    --text:#f5f1e8; --t2:#a8a195; --t3:#6b6359;
+    --acc:#ff6b35; --acc-soft:#ffb38a; --acc-dim:rgba(255,107,53,0.12); --acc-glow:rgba(255,107,53,0.28);
+    /* domain accents */
+    --fitness:#ff6b35; --nutrition:#34d399; --sleep:#4c8bf5; --finance:#fbbf24;
+    --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  html,body{background:#050403;font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:22px;padding:40px 20px 64px;
+    background:radial-gradient(70% 50% at 50% -5%, rgba(40,36,28,0.55), transparent 60%), #050403}
+  .serif{font-family:'Instrument Serif',serif}
+  .mono{font-family:'Geist Mono',monospace}
+
+  .head{text-align:center;max-width:520px}
+  .head .kick{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--t3)}
+  .head h1{font-family:'Instrument Serif',serif;font-size:34px;line-height:1.1;margin-top:8px;letter-spacing:-0.4px}
+  .head h1 em{font-style:italic;color:var(--acc-soft)}
+  .head p{color:var(--t2);font-size:13.5px;margin-top:10px;line-height:1.5}
+
+  /* phone */
+  .phone{position:relative;width:390px;height:800px;flex-shrink:0;
+    background:linear-gradient(150deg,#2a2622,#100e0b);border-radius:54px;padding:11px;
+    box-shadow:0 0 0 2px #000,0 44px 90px -30px rgba(0,0,0,.9),inset 0 1px 1px rgba(255,255,255,.10)}
+  .screen{position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#000;border-radius:0 0 18px 18px;z-index:50}
+  .bezel{position:absolute;inset:0;border-radius:44px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(245,241,232,.06);z-index:60}
+
+  .status{height:52px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px;font-size:14px;font-weight:600;flex-shrink:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px;flex-shrink:0}
+  .wordmark{display:flex;align-items:center;gap:9px;position:relative}
+  .wordmark .mk{width:24px;height:24px;display:block}
+  .wordmark .nm{font-family:'Instrument Serif',serif;font-size:23px;letter-spacing:0.2px}
+  .wordmark .home-dot{position:absolute;left:33px;bottom:-5px;width:16px;height:3px;border-radius:2px;background:var(--acc);box-shadow:0 0 8px var(--acc-glow)}
+  .gear{width:34px;height:34px;border-radius:var(--r-sm);background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--t2)}
+  .gear svg{width:17px;height:17px}
+
+  .body{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 20px}
+  .body::-webkit-scrollbar{display:none}
+
+  .greet{padding:6px 4px 16px}
+  .greet .g-day{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3)}
+  .greet .g-hi{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.05;margin-top:5px}
+  .greet .g-hi em{font-style:italic;color:var(--acc-soft)}
+
+  /* recap */
+  .seg{display:inline-flex;gap:3px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-pill);padding:3px;margin-bottom:12px}
+  .seg button{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);
+    background:transparent;border:0;padding:7px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.15s var(--ease)}
+  .seg button.on{background:var(--acc-dim);color:var(--acc)}
+
+  .recap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+  .rc{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);
+    padding:14px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+  .rc:active{transform:scale(.985)}
+  .rc .rc-top{display:flex;align-items:center;gap:7px}
+  .rc .dot{width:7px;height:7px;border-radius:50%}
+  .rc .rc-name{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+  .rc .rc-val{font-family:'Instrument Serif',serif;font-size:27px;line-height:1;letter-spacing:-0.5px}
+  .rc .rc-val small{font-size:13px;color:var(--t2);font-family:'Geist',sans-serif}
+  .rc .rc-sub{font-size:11px;color:var(--t2)}
+  .rc .rc-edge{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+
+  .sec-lbl{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin:2px 4px 12px}
+  .sec-lbl .pip{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+
+  /* suggestion cards */
+  .sugg{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+  .sg{display:flex;gap:13px;align-items:flex-start;background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);
+    border:1px solid var(--border);border-radius:var(--r-lg);padding:15px 15px 14px;position:relative;overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .sg-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative}
+  .sg-ic svg{width:20px;height:20px}
+  .sg-body{flex:1;min-width:0}
+  .sg-dom{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+  .sg-txt{font-size:14px;line-height:1.4;color:var(--text);text-wrap:pretty}
+  .sg-cta{margin-top:11px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    padding:8px 13px;border-radius:var(--r-pill);border:1px solid var(--border-hi);background:rgba(245,241,232,.04);color:var(--text);cursor:pointer}
+  .sg-cta svg{width:13px;height:13px}
+  .sg-x{position:absolute;top:11px;right:12px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:var(--t3);font-size:14px;cursor:pointer;opacity:.6}
+  .sg-x:hover{opacity:1}
+
+  /* domain tiles */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);
+    padding:15px 14px;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+  .tile:active{transform:scale(.985)}
+  .tile .t-glow{position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;opacity:.16;filter:blur(8px)}
+  .tile .t-top{display:flex;align-items:center;gap:8px}
+  .tile .t-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .tile .t-ic svg{width:15px;height:15px}
+  .tile .t-nm{font-size:14px;font-weight:700}
+  .tile .t-val{font-family:'Geist Mono',monospace;font-size:12px;color:var(--t2);margin-top:2px}
+
+  /* bottom tab bar */
+  .tabs{display:flex;align-items:center;justify-content:space-around;height:74px;flex-shrink:0;padding-bottom:10px;
+    background:rgba(20,18,14,.84);backdrop-filter:blur(20px);border-top:1px solid var(--border)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;color:var(--t3);font-weight:600}
+  .tab svg{width:21px;height:21px}
+  .tab.home{color:var(--acc)}
+
+  .note{max-width:520px;color:var(--t2);font-size:13px;line-height:1.6;text-align:center}
+  .note b{color:var(--acc-soft);font-weight:600}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--t3)}
+  .legend i{width:9px;height:9px;border-radius:50%}
+
+  [data-rev]{display:none}
+  [data-rev].show{display:grid}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kick">IronLog V4 · concept</div>
+    <h1>The <em>Today</em> home</h1>
+    <p>One screen that reads your last day across all four domains and tells you the few things worth doing next. This replaces the old "domains" card — and it's where the app launches.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="bezel"></div>
+      <div class="status"><span class="mono">9:41</span><span style="font-size:13px">Wi-Fi 100%</span></div>
+
+      <div class="topbar">
+        <div class="wordmark">
+          <span class="mk" id="mk"></span>
+          <span class="nm serif">IronLog</span>
+          <span class="home-dot"></span>
+        </div>
+        <div class="gear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      </div>
+
+      <div class="body">
+        <div class="greet">
+          <div class="g-day">Monday · June 2</div>
+          <div class="g-hi serif">Good <em>evening</em>, Rūdolfs</div>
+        </div>
+
+        <div class="seg" id="seg">
+          <button class="on" data-r="day">Yesterday</button>
+          <button data-r="week">Last 7 days</button>
+        </div>
+
+        <!-- RECAP: yesterday -->
+        <div class="recap" data-rev="day">
+          <div class="rc"><div class="rc-edge" style="background:var(--fitness)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--fitness)"></span><span class="rc-name">Fitness</span></div>
+            <div class="rc-val">Push <small>day</small></div><div class="rc-sub">14 sets · 1 PR</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--nutrition)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--nutrition)"></span><span class="rc-name">Nutrition</span></div>
+            <div class="rc-val">2,680<small>kcal</small></div><div class="rc-sub" style="color:var(--acc-soft)">+280 over target</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--sleep)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--sleep)"></span><span class="rc-name">Sleep</span></div>
+            <div class="rc-val">6h 10<small>m</small></div><div class="rc-sub" style="color:var(--acc-soft)">bed 1:00 · late</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--finance)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--finance)"></span><span class="rc-name">Finance</span></div>
+            <div class="rc-val">€38<small>spent</small></div><div class="rc-sub">€12 over daily pace</div></div>
+        </div>
+
+        <!-- RECAP: week -->
+        <div class="recap" data-rev="week">
+          <div class="rc"><div class="rc-edge" style="background:var(--fitness)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--fitness)"></span><span class="rc-name">Fitness</span></div>
+            <div class="rc-val">4<small>sessions</small></div><div class="rc-sub" style="color:#7fb069">+1 vs last week</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--nutrition)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--nutrition)"></span><span class="rc-name">Nutrition</span></div>
+            <div class="rc-val">5/7<small>on target</small></div><div class="rc-sub">avg 2,510 kcal</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--sleep)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--sleep)"></span><span class="rc-name">Sleep</span></div>
+            <div class="rc-val">6h 40<small>avg</small></div><div class="rc-sub" style="color:var(--acc-soft)">inconsistent bedtime</div></div>
+          <div class="rc"><div class="rc-edge" style="background:var(--finance)"></div>
+            <div class="rc-top"><span class="dot" style="background:var(--finance)"></span><span class="rc-name">Finance</span></div>
+            <div class="rc-val">€420<small>of 600</small></div><div class="rc-sub" style="color:var(--acc-soft)">20% over pace</div></div>
+        </div>
+
+        <div class="sec-lbl"><span class="pip"></span>Today's focus</div>
+        <div class="sugg" id="sugg">
+          <div class="sg">
+            <div class="sg-ic" style="background:rgba(76,139,245,.14);color:var(--sleep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+            <div class="sg-body">
+              <div class="sg-dom" style="color:var(--sleep)">Sleep</div>
+              <div class="sg-txt">You went to bed at <b style="color:var(--text)">1:00</b> last night and slept 6h 10m. Aim for lights-out by <b style="color:var(--text)">24:00</b> tonight to clear the deficit.</div>
+            </div>
+            <div class="sg-x">✕</div>
+          </div>
+
+          <div class="sg">
+            <div class="sg-ic" style="background:rgba(255,107,53,.14);color:var(--fitness)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M7 17l-2 2M17 7l2-2"/></svg></div>
+            <div class="sg-body">
+              <div class="sg-dom" style="color:var(--fitness)">Fitness</div>
+              <div class="sg-txt">You haven't trained <b style="color:var(--text)">Legs</b> in 9 days — your longest gap. Slot it in to keep your split balanced.</div>
+              <button class="sg-cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Legs</button>
+            </div>
+            <div class="sg-x">✕</div>
+          </div>
+
+          <div class="sg">
+            <div class="sg-ic" style="background:rgba(52,211,153,.14);color:var(--nutrition)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+            <div class="sg-body">
+              <div class="sg-dom" style="color:var(--nutrition)">Nutrition</div>
+              <div class="sg-txt">You ran <b style="color:var(--text)">+280 kcal</b> over yesterday. Trim ~300 today to stay on your cut.</div>
+            </div>
+            <div class="sg-x">✕</div>
+          </div>
+
+          <div class="sg">
+            <div class="sg-ic" style="background:rgba(251,191,36,.14);color:var(--finance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="sg-body">
+              <div class="sg-dom" style="color:var(--finance)">Finance</div>
+              <div class="sg-txt">You're <b style="color:var(--text)">20% over</b> budget pace this month. Ease off spending this week to land under €600.</div>
+            </div>
+            <div class="sg-x">✕</div>
+          </div>
+        </div>
+
+        <div class="sec-lbl"><span class="pip"></span>Jump in</div>
+        <div class="tiles">
+          <div class="tile"><div class="t-glow" style="background:var(--fitness)"></div>
+            <div class="t-top"><span class="t-ic" style="background:rgba(255,107,53,.14);color:var(--fitness)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/></svg></span><span class="t-nm">Fitness</span></div>
+            <div class="t-val">Push suggested · 4 logs</div></div>
+          <div class="tile"><div class="t-glow" style="background:var(--nutrition)"></div>
+            <div class="t-top"><span class="t-ic" style="background:rgba(52,211,153,.14);color:var(--nutrition)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></span><span class="t-nm">Nutrition</span></div>
+            <div class="t-val">2,310 / 2,400 today</div></div>
+          <div class="tile"><div class="t-glow" style="background:var(--sleep)"></div>
+            <div class="t-top"><span class="t-ic" style="background:rgba(76,139,245,.14);color:var(--sleep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="t-nm">Sleep</span></div>
+            <div class="t-val">Coming soon</div></div>
+          <div class="tile"><div class="t-glow" style="background:var(--finance)"></div>
+            <div class="t-top"><span class="t-ic" style="background:rgba(251,191,36,.14);color:var(--finance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="t-nm">Finance</span></div>
+            <div class="t-val">Coming soon</div></div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/></svg>Fitness</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg>Nutrition</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Sleep</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finance</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Tap <b>Yesterday / Last 7 days</b> to swap the recap. The <b>IronLog wordmark</b> (with the coral underline) is the always-available way back to this Today home; the bottom bar stays the four domains. Suggestions are dismissible and come from a small rules engine reading your real data.</p>
+  <div class="legend">
+    <span><i style="background:var(--fitness)"></i>Fitness</span>
+    <span><i style="background:var(--nutrition)"></i>Nutrition</span>
+    <span><i style="background:var(--sleep)"></i>Sleep</span>
+    <span><i style="background:var(--finance)"></i>Finance</span>
+  </div>
+
+  <script>
+    // forged chevron wordmark mark
+    document.getElementById('mk').innerHTML = `<svg width="24" height="24" viewBox="0 0 200 200" style="display:block">
+      <defs><linearGradient id="mkf" x1="0" y1="0" x2="0.15" y2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset="0.5" stop-color="#8c9298"/><stop offset="1" stop-color="#2a2d31"/></linearGradient>
+      <linearGradient id="mka" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9bd"/><stop offset="0.5" stop-color="#ff8a4d"/><stop offset="1" stop-color="#ff5a1f"/></linearGradient></defs>
+      <polygon points="100,30 168,98 142,98 100,56 58,98 32,98" fill="url(#mkf)"/>
+      <polygon points="58,98 100,56 142,98 136,98 100,62 64,98" fill="url(#mka)" opacity="0.95"/>
+      <polygon points="100,92 168,160 142,160 100,118 58,160 32,160" fill="url(#mkf)"/>
+      <polygon points="58,160 100,118 142,160 136,160 100,124 64,160" fill="url(#mka)" opacity="0.95"/></svg>`;
+
+    // recap toggle
+    const seg = document.getElementById('seg');
+    function setRev(r){
+      seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.r===r));
+      document.querySelectorAll('[data-rev]').forEach(el=>el.classList.toggle('show', el.dataset.rev===r));
+    }
+    seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setRev(b.dataset.r)));
+    setRev('day');
+
+    // dismiss suggestions
+    document.querySelectorAll('.sg-x').forEach(x=>x.addEventListener('click',e=>{
+      const card=e.target.closest('.sg'); card.style.transition='.25s var(--ease)'; card.style.opacity='0'; card.style.transform='translateX(20px)';
+      setTimeout(()=>card.remove(),250);
+    }));
+  </script>
+</body>
+</html>

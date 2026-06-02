@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IronLog V4 — Clickable Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0908; --s1:#16140f; --s2:#1f1c16; --s3:#28251d;
+    --glass:rgba(28,25,20,0.64);
+    --border:rgba(245,241,232,0.08); --border-hi:rgba(245,241,232,0.16);
+    --text:#f5f1e8; --t2:#a8a195; --t3:#6b6359;
+    --fitness:#ff6b35; --nutrition:#34d399; --sleep:#4c8bf5; --finance:#fbbf24;
+    --acc:var(--fitness); --acc-soft:#ffb38a;
+    --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  html,body{background:#050403;font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:18px;padding:34px 20px 60px;
+    background:radial-gradient(70% 50% at 50% -5%, rgba(40,36,28,0.5), transparent 60%), #050403}
+  .serif{font-family:'Instrument Serif',serif}.mono{font-family:'Geist Mono',monospace}
+
+  .head{text-align:center;max-width:560px}
+  .head .kick{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--t3)}
+  .head h1{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.1;margin-top:8px;letter-spacing:-0.4px}
+  .head h1 em{font-style:italic;color:var(--acc-soft)}
+  .head p{color:var(--t2);font-size:13px;margin-top:9px;line-height:1.5}
+
+  .phone{position:relative;width:390px;height:820px;flex-shrink:0;
+    background:linear-gradient(150deg,#2a2622,#100e0b);border-radius:54px;padding:11px;
+    box-shadow:0 0 0 2px #000,0 44px 90px -30px rgba(0,0,0,.9),inset 0 1px 1px rgba(255,255,255,.10)}
+  .screen{position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#000;border-radius:0 0 18px 18px;z-index:50}
+  .bezel{position:absolute;inset:0;border-radius:44px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(245,241,232,.06);z-index:60}
+
+  .status{height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px;font-size:14px;font-weight:600;flex-shrink:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 18px 10px;flex-shrink:0}
+  .wordmark{display:flex;align-items:center;gap:9px;position:relative;cursor:pointer}
+  .wordmark .mk{width:22px;height:22px;display:block}
+  .wordmark .nm{font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:0.2px}
+  .wordmark .home-dot{position:absolute;left:31px;bottom:-5px;width:15px;height:3px;border-radius:2px;background:var(--acc);box-shadow:0 0 8px var(--acc);opacity:0;transition:.2s}
+  .wordmark.is-home .home-dot{opacity:1}
+  .gear{width:32px;height:32px;border-radius:var(--r-sm);background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer}
+  .gear svg{width:16px;height:16px}
+
+  .subnav{display:flex;gap:4px;padding:2px 16px 12px;flex-shrink:0;overflow-x:auto}
+  .subnav::-webkit-scrollbar{display:none}
+  .subtab{flex:0 0 auto;font-size:13px;font-weight:600;color:var(--t2);background:transparent;border:0;padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.15s var(--ease);white-space:nowrap}
+  .subtab.on{background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc)}
+
+  .body{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 20px}
+  .body::-webkit-scrollbar{display:none}
+
+  .card{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);position:relative;overflow:hidden}
+  .lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+  .big{font-family:'Instrument Serif',serif;font-size:42px;line-height:1;letter-spacing:-1px}
+  .big small{font-size:16px;color:var(--t2);font-family:'Geist',sans-serif}
+
+  /* greeting + recap (home) */
+  .greet{padding:6px 4px 16px}
+  .greet .g-day{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3)}
+  .greet .g-hi{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.05;margin-top:5px}
+  .greet .g-hi em{font-style:italic;color:var(--acc-soft)}
+  .seg{display:inline-flex;gap:3px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-pill);padding:3px;margin-bottom:12px}
+  .seg button{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);background:transparent;border:0;padding:7px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.15s var(--ease)}
+  .seg button.on{background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc)}
+  .recap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+  .rc{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+  .rc:active{transform:scale(.985)}
+  .rc .rc-top{display:flex;align-items:center;gap:7px}
+  .rc .dot{width:7px;height:7px;border-radius:50%}
+  .rc .rc-name{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+  .rc .rc-val{font-family:'Instrument Serif',serif;font-size:25px;line-height:1;letter-spacing:-0.5px}
+  .rc .rc-val small{font-size:12px;color:var(--t2);font-family:'Geist',sans-serif}
+  .rc .rc-sub{font-size:11px;color:var(--t2)}
+  .rc .rc-edge{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+
+  .sec-lbl{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin:2px 4px 12px}
+  .sec-lbl .pip{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+
+  .sugg{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+  .sg{display:flex;gap:13px;align-items:flex-start;background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .sg-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .sg-ic svg{width:20px;height:20px}
+  .sg-body{flex:1;min-width:0}
+  .sg-dom{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+  .sg-txt{font-size:14px;line-height:1.4;color:var(--text);text-wrap:pretty}
+  .sg-cta{margin-top:11px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:8px 13px;border-radius:var(--r-pill);border:1px solid var(--border-hi);background:rgba(245,241,232,.04);color:var(--text);cursor:pointer}
+  .sg-cta svg{width:13px;height:13px}
+  .sg-x{position:absolute;top:11px;right:12px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:14px;cursor:pointer;opacity:.6}
+  .sg-x:hover{opacity:1}
+
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px 14px;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+  .tile:active{transform:scale(.985)}
+  .tile .t-glow{position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;opacity:.16;filter:blur(8px)}
+  .tile .t-top{display:flex;align-items:center;gap:8px}
+  .tile .t-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .tile .t-ic svg{width:15px;height:15px}
+  .tile .t-nm{font-size:14px;font-weight:700}
+  .tile .t-val{font-family:'Geist Mono',monospace;font-size:12px;color:var(--t2)}
+
+  /* fitness */
+  .hero{border:0;background:linear-gradient(135deg,#ff6b35,#e0531f);color:#fff;padding:20px;cursor:pointer}
+  .hero .h-kick{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.9;display:flex;align-items:center;gap:7px}
+  .hero .h-dot{width:7px;height:7px;border-radius:50%;background:#fff}
+  .hero .h-name{font-family:'Instrument Serif',serif;font-size:40px;line-height:1;margin:8px 0 4px}
+  .hero .h-sub{font-size:13px;opacity:.92}
+  .hero .h-cta{margin-top:16px;width:100%;background:#fff;color:#1a0e07;border:0;border-radius:var(--r-md);padding:14px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+  .hero .h-cta svg{width:15px;height:15px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .delta{font-size:12px;margin-top:6px}.up{color:#7fb069}.warn{color:var(--acc-soft)}
+  .spark{display:flex;gap:4px;align-items:flex-end;height:34px;margin-top:12px}
+  .spark i{flex:1;background:color-mix(in srgb,var(--acc) 55%,transparent);border-radius:2px}
+  .dots{display:flex;gap:5px;margin-top:12px}
+  .dots i{flex:1;height:6px;border-radius:3px;background:var(--s3)}.dots i.lit{background:var(--acc)}
+  .pills{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}.pills::-webkit-scrollbar{display:none}
+  .pill{flex:0 0 auto;font-size:13px;font-weight:600;padding:8px 16px;border-radius:var(--r-pill);background:var(--s2);border:1px solid var(--border);color:var(--t2);cursor:pointer}
+  .pill.on{background:color-mix(in srgb,var(--acc) 14%,transparent);border-color:var(--acc);color:var(--acc)}
+  .exrow{display:flex;align-items:center;justify-content:space-between;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;margin-bottom:9px}
+  .exrow .ex-nm{font-size:15px;font-weight:600}.exrow .ex-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:'Geist Mono',monospace}
+  .exrow .ex-go{width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);display:flex;align-items:center;justify-content:center}
+  .exrow .ex-go svg{width:14px;height:14px}
+  .ph{display:flex;gap:10px;margin-bottom:12px}
+  .pstat{flex:1;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);padding:13px;text-align:center}
+  .pstat .v{font-family:'Instrument Serif',serif;font-size:26px;color:var(--acc);line-height:1}
+  .pstat .l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-top:5px}
+  .podium{display:flex;gap:9px;align-items:flex-end;margin-top:8px}
+  .pod{flex:1;border-radius:var(--r-md);padding:12px 8px;text-align:center;border:1px solid var(--border)}
+  .pod .pw{font-family:'Geist Mono',monospace;font-size:15px;font-weight:600}.pod .pn{font-size:10px;color:var(--t3);margin-top:3px}
+  .pod.g{background:linear-gradient(180deg,rgba(255,200,90,.16),transparent)}.pod.s{background:linear-gradient(180deg,rgba(200,210,220,.12),transparent)}.pod.b{background:linear-gradient(180deg,rgba(205,127,80,.14),transparent)}
+  .chartph{height:120px;border-radius:var(--r-md);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 16%,transparent),transparent);position:relative;overflow:hidden;border:1px solid var(--border)}
+  .chartph svg{position:absolute;inset:0;width:100%;height:100%}
+  .hm{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:6px}
+  .hm i{aspect-ratio:1;border-radius:3px;background:var(--s2)}
+  .hm i.l1{background:color-mix(in srgb,var(--acc) 30%,transparent)}.hm i.l2{background:color-mix(in srgb,var(--acc) 60%,transparent)}.hm i.l3{background:var(--acc)}
+  .sessrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}.sessrow:last-child{border-bottom:0}
+  .sessrow .s-nm{font-size:14px;font-weight:600}.sessrow .s-sub{font-size:11px;color:var(--t3);font-family:'Geist Mono',monospace;margin-top:2px}
+  /* nutrition */
+  .nut-cal{font-family:'Instrument Serif',serif;font-size:46px;line-height:.95}.nut-cal small{font-size:14px;color:var(--t2);font-family:'Geist',sans-serif}
+  .macro{display:flex;flex-direction:column;gap:11px;margin-top:14px}
+  .macro .m-top{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:5px}
+  .macro .m-bar{height:7px;border-radius:4px;background:var(--s3);overflow:hidden}.macro .m-fill{height:100%;border-radius:4px;background:var(--nutrition)}
+  .searchbar{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;color:var(--t3);font-size:13px;margin-bottom:12px}
+  .searchbar svg{width:16px;height:16px}
+  .foodrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}.foodrow:last-child{border-bottom:0}
+  .foodrow .f-nm{font-size:14px;font-weight:600}.foodrow .f-sub{font-size:11px;color:var(--t3);margin-top:2px}
+  .foodrow .f-add{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--nutrition) 16%,transparent);color:var(--nutrition);display:flex;align-items:center;justify-content:center;font-size:18px}
+  /* coming soon */
+  .cs{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 28px;gap:6px;min-height:520px}
+  .cs .cs-mk{margin-bottom:8px;filter:drop-shadow(0 8px 24px rgba(0,0,0,.4))}
+  .cs .cs-kick{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase}
+  .cs .cs-h{font-family:'Instrument Serif',serif;font-size:34px;line-height:1.1;margin-top:8px;white-space:nowrap}
+  .cs .cs-p{color:var(--t2);font-size:13.5px;line-height:1.55;margin-top:14px;max-width:280px}
+  .cs .cs-list{margin-top:22px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:9px}
+  .cs .cs-item{display:flex;align-items:center;gap:11px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;text-align:left;font-size:13px;color:var(--t2)}
+  .cs .cs-item .ci-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .cs .cs-foot{margin-top:20px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+
+  .tabs{display:flex;align-items:center;justify-content:space-around;height:72px;flex-shrink:0;padding-bottom:8px;background:rgba(20,18,14,.84);backdrop-filter:blur(20px);border-top:1px solid var(--border)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;color:var(--t3);font-weight:600;cursor:pointer;flex:1}
+  .tab svg{width:21px;height:21px}
+  .tab.on[data-d=fitness]{color:var(--fitness)}.tab.on[data-d=nutrition]{color:var(--nutrition)}.tab.on[data-d=sleep]{color:var(--sleep)}.tab.on[data-d=finance]{color:var(--finance)}
+
+  .note{max-width:560px;color:var(--t2);font-size:13px;line-height:1.6;text-align:center}
+  .note b{color:var(--acc-soft);font-weight:600}
+  .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%) translateY(8px);background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border-hi);border-radius:var(--r-pill);padding:10px 18px;font-size:12.5px;color:var(--text);opacity:0;transition:.25s;pointer-events:none;z-index:80;box-shadow:0 20px 40px -16px rgba(0,0,0,.6)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kick">IronLog V4 · clickable prototype</div>
+    <h1>The whole <em>shell</em>, navigable</h1>
+    <p>Launches on the Today home. Tap a recap card, a suggestion CTA, or a domain tile to dive in; use the bottom bar to switch domains and the sub-tabs within each. The IronLog wordmark always returns to Today.</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="bezel"></div>
+      <div class="status"><span class="mono">9:41</span><span style="font-size:13px">Wi-Fi 100%</span></div>
+
+      <div class="topbar">
+        <div class="wordmark is-home" id="wordmark"><span class="mk" id="mk"></span><span class="nm serif" id="domName">IronLog</span><span class="home-dot"></span></div>
+        <div class="gear" onclick="toast('Settings → Data · Appearance · Training · About')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      </div>
+
+      <div class="subnav" id="subnav"></div>
+      <div class="body" id="body"></div>
+      <div class="toast" id="toast"></div>
+
+      <div class="tabs" id="tabs">
+        <div class="tab" data-d="fitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/></svg>Fitness</div>
+        <div class="tab" data-d="nutrition"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg>Nutrition</div>
+        <div class="tab" data-d="sleep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Sleep</div>
+        <div class="tab" data-d="finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finance</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">One navigable prototype: <b>Today home</b> + the four domains with their <b>sub-tabs</b>, plus polished <b>Coming Soon</b> for Sleep & Finance. Everything is tappable.</p>
+
+  <script>
+    const ACCENT={fitness:'var(--fitness)',nutrition:'var(--nutrition)',sleep:'var(--sleep)',finance:'var(--finance)'};
+    const RAW={fitness:'#ff6b35',nutrition:'#34d399',sleep:'#4c8bf5',finance:'#fbbf24'};
+    const SUBS={fitness:['Home','Train','Progress','History'],nutrition:['Today','Foods','Trends'],sleep:[],finance:[]};
+    let view='home';                       // 'home' or a domain key
+    let sub={fitness:'Home',nutrition:'Today'};
+    let recapRange='day';
+
+    const chev=(size,domAccent)=>`<svg width="${size}" height="${size}" viewBox="0 0 200 200" style="display:block">
+      <defs><linearGradient id="mf${size}" x1="0" y1="0" x2="0.15" y2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset="0.5" stop-color="#8c9298"/><stop offset="1" stop-color="#2a2d31"/></linearGradient>
+      <linearGradient id="ma${size}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${domAccent}" stop-opacity="0.55"/><stop offset="1" stop-color="${domAccent}"/></linearGradient></defs>
+      <polygon points="100,30 168,98 142,98 100,56 58,98 32,98" fill="url(#mf${size})"/>
+      <polygon points="58,98 100,56 142,98 136,98 100,62 64,98" fill="url(#ma${size})" opacity="0.95"/>
+      <polygon points="100,92 168,160 142,160 100,118 58,160 32,160" fill="url(#mf${size})"/>
+      <polygon points="58,160 100,118 142,160 136,160 100,124 64,160" fill="url(#ma${size})" opacity="0.95"/></svg>`;
+    document.getElementById('mk').innerHTML=chev(22,'#ff6b35');
+
+    function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+    // ── HOME (Today hub) ──
+    function homeHTML(){
+      const recapDay=`
+        <div class="rc" data-go="fitness"><div class="rc-edge" style="background:var(--fitness)"></div><div class="rc-top"><span class="dot" style="background:var(--fitness)"></span><span class="rc-name">Fitness</span></div><div class="rc-val">Push <small>day</small></div><div class="rc-sub">14 sets · 1 PR</div></div>
+        <div class="rc" data-go="nutrition"><div class="rc-edge" style="background:var(--nutrition)"></div><div class="rc-top"><span class="dot" style="background:var(--nutrition)"></span><span class="rc-name">Nutrition</span></div><div class="rc-val">2,680<small>kcal</small></div><div class="rc-sub" style="color:var(--acc-soft)">+280 over target</div></div>
+        <div class="rc" data-go="sleep"><div class="rc-edge" style="background:var(--sleep)"></div><div class="rc-top"><span class="dot" style="background:var(--sleep)"></span><span class="rc-name">Sleep</span></div><div class="rc-val">6h 10<small>m</small></div><div class="rc-sub" style="color:var(--acc-soft)">bed 1:00 · late</div></div>
+        <div class="rc" data-go="finance"><div class="rc-edge" style="background:var(--finance)"></div><div class="rc-top"><span class="dot" style="background:var(--finance)"></span><span class="rc-name">Finance</span></div><div class="rc-val">€38<small>spent</small></div><div class="rc-sub">€12 over pace</div></div>`;
+      const recapWeek=`
+        <div class="rc" data-go="fitness"><div class="rc-edge" style="background:var(--fitness)"></div><div class="rc-top"><span class="dot" style="background:var(--fitness)"></span><span class="rc-name">Fitness</span></div><div class="rc-val">4<small>sessions</small></div><div class="rc-sub up" style="color:#7fb069">+1 vs last week</div></div>
+        <div class="rc" data-go="nutrition"><div class="rc-edge" style="background:var(--nutrition)"></div><div class="rc-top"><span class="dot" style="background:var(--nutrition)"></span><span class="rc-name">Nutrition</span></div><div class="rc-val">5/7<small>on target</small></div><div class="rc-sub">avg 2,510 kcal</div></div>
+        <div class="rc" data-go="sleep"><div class="rc-edge" style="background:var(--sleep)"></div><div class="rc-top"><span class="dot" style="background:var(--sleep)"></span><span class="rc-name">Sleep</span></div><div class="rc-val">6h 40<small>avg</small></div><div class="rc-sub" style="color:var(--acc-soft)">inconsistent</div></div>
+        <div class="rc" data-go="finance"><div class="rc-edge" style="background:var(--finance)"></div><div class="rc-top"><span class="dot" style="background:var(--finance)"></span><span class="rc-name">Finance</span></div><div class="rc-val">€420<small>/600</small></div><div class="rc-sub" style="color:var(--acc-soft)">20% over pace</div></div>`;
+      return `
+        <div class="greet"><div class="g-day">Monday · June 2</div><div class="g-hi serif">Good <em>evening</em>, Rūdolfs</div></div>
+        <div class="seg" id="seg"><button class="${recapRange==='day'?'on':''}" data-r="day">Yesterday</button><button class="${recapRange==='week'?'on':''}" data-r="week">Last 7 days</button></div>
+        <div class="recap">${recapRange==='day'?recapDay:recapWeek}</div>
+        <div class="sec-lbl"><span class="pip"></span>Today's focus</div>
+        <div class="sugg">
+          <div class="sg"><div class="sg-ic" style="background:rgba(76,139,245,.14);color:var(--sleep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div><div class="sg-body"><div class="sg-dom" style="color:var(--sleep)">Sleep</div><div class="sg-txt">You went to bed at <b style="color:var(--text)">1:00</b> and slept 6h 10m. Aim for lights-out by <b style="color:var(--text)">24:00</b> tonight.</div></div><div class="sg-x">✕</div></div>
+          <div class="sg"><div class="sg-ic" style="background:rgba(255,107,53,.14);color:var(--fitness)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/></svg></div><div class="sg-body"><div class="sg-dom" style="color:var(--fitness)">Fitness</div><div class="sg-txt">You haven't trained <b style="color:var(--text)">Legs</b> in 9 days — your longest gap.</div><button class="sg-cta" data-go="fitness" data-sub="Train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Legs</button></div><div class="sg-x">✕</div></div>
+          <div class="sg"><div class="sg-ic" style="background:rgba(52,211,153,.14);color:var(--nutrition)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div><div class="sg-body"><div class="sg-dom" style="color:var(--nutrition)">Nutrition</div><div class="sg-txt">You ran <b style="color:var(--text)">+280 kcal</b> over yesterday. Trim ~300 today to stay on your cut.</div></div><div class="sg-x">✕</div></div>
+          <div class="sg"><div class="sg-ic" style="background:rgba(251,191,36,.14);color:var(--finance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="sg-body"><div class="sg-dom" style="color:var(--finance)">Finance</div><div class="sg-txt">You're <b style="color:var(--text)">20% over</b> budget pace this month. Ease off this week.</div></div><div class="sg-x">✕</div></div>
+        </div>
+        <div class="sec-lbl"><span class="pip"></span>Jump in</div>
+        <div class="tiles">
+          <div class="tile" data-go="fitness"><div class="t-glow" style="background:var(--fitness)"></div><div class="t-top"><span class="t-ic" style="background:rgba(255,107,53,.14);color:var(--fitness)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/></svg></span><span class="t-nm">Fitness</span></div><div class="t-val">Push suggested · 4 logs</div></div>
+          <div class="tile" data-go="nutrition"><div class="t-glow" style="background:var(--nutrition)"></div><div class="t-top"><span class="t-ic" style="background:rgba(52,211,153,.14);color:var(--nutrition)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></span><span class="t-nm">Nutrition</span></div><div class="t-val">2,310 / 2,400 today</div></div>
+          <div class="tile" data-go="sleep"><div class="t-glow" style="background:var(--sleep)"></div><div class="t-top"><span class="t-ic" style="background:rgba(76,139,245,.14);color:var(--sleep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="t-nm">Sleep</span></div><div class="t-val">Coming soon</div></div>
+          <div class="tile" data-go="finance"><div class="t-glow" style="background:var(--finance)"></div><div class="t-top"><span class="t-ic" style="background:rgba(251,191,36,.14);color:var(--finance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="t-nm">Finance</span></div><div class="t-val">Coming soon</div></div>
+        </div>`;
+    }
+
+    // ── DOMAIN screens ──
+    const R={};
+    R['fitness:Home']=()=>`
+      <div class="card hero" data-sub="Train"><div class="h-kick"><span class="h-dot"></span>Suggested · last trained today</div><div class="h-name serif">Push</div><div class="h-sub">Bench Press · last 82kg × 8</div><button class="h-cta" data-sub="Train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start workout</button></div>
+      <div class="grid2"><div class="card"><div class="lbl">This week</div><div class="big">7,240<small>kg</small></div><div class="delta up">▲ +12% vs last</div><div class="spark">${[40,55,30,70,50,85,60].map(h=>`<i style="height:${h}%"></i>`).join('')}</div></div>
+      <div class="card"><div class="lbl">Streak</div><div class="big">12<small>days</small></div><div class="delta">best · 18</div><div class="dots">${[1,1,1,1,0,1,1].map(l=>`<i class="${l?'lit':''}"></i>`).join('')}</div></div></div>`;
+    R['fitness:Train']=()=>`<div class="pills">${['Push','Pull','Legs'].map((p,i)=>`<button class="pill${i===0?' on':''}">${p}</button>`).join('')}</div>
+      ${[['Incline Bench','3 sets · last 82kg'],['Overhead Press','3 sets · last 50kg'],['Cable Fly','3 sets · last 18kg'],['Triceps Pushdown','3 sets · last 32kg']].map(([n,s])=>`<div class="exrow" onclick="toast('→ opens big-card set logging')"><div><div class="ex-nm">${n}</div><div class="ex-sub">${s}</div></div><div class="ex-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>`).join('')}`;
+    R['fitness:Progress']=()=>`<div class="ph"><div class="pstat"><div class="v">+34%</div><div class="l">12-wk gain</div></div><div class="pstat"><div class="v">102.5</div><div class="l">Best kg</div></div><div class="pstat"><div class="v">18</div><div class="l">Sessions</div></div></div>
+      <div class="card"><div class="lbl">Incline Bench · top weight</div><div class="chartph"><svg viewBox="0 0 300 120" preserveAspectRatio="none"><polyline points="0,96 50,88 100,80 150,64 200,52 250,40 300,24" fill="none" stroke="var(--acc)" stroke-width="3"/><circle cx="300" cy="24" r="4" fill="var(--acc)"/></svg></div></div>
+      <div class="card"><div class="lbl">Records</div><div class="podium"><div class="pod s"><div class="pw">180</div><div class="pn">Deadlift</div></div><div class="pod g"><div class="pw">102.5</div><div class="pn">Bench</div></div><div class="pod b"><div class="pw">150</div><div class="pn">Squat</div></div></div></div>`;
+    R['fitness:History']=()=>`<div class="card"><div class="lbl">Last 12 weeks</div><div class="hm">${Array.from({length:84},()=>{const r=Math.random();const c=r>.8?'l3':r>.6?'l2':r>.4?'l1':'';return `<i class="${c}"></i>`}).join('')}</div></div>
+      <div class="card"><div class="lbl">Recent sessions</div>${[['Push Day','Mon · 14 sets · 1 PR'],['Pull Day','Sat · 18 sets'],['Legs','Thu · 16 sets']].map(([n,s])=>`<div class="sessrow"><div><div class="s-nm">${n}</div><div class="s-sub">${s}</div></div><div class="ex-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>`).join('')}</div>`;
+    R['nutrition:Today']=()=>`<div class="card" style="border-color:rgba(52,211,153,.24)"><div class="lbl">Today · training day</div><div class="nut-cal">90<small>kcal left</small></div><div style="font-size:12px;color:var(--t3);margin-top:4px">2,310 / 2,400 kcal</div>
+      <div class="macro">${[['Protein',168,180],['Carbs',240,260],['Fat',61,70]].map(([n,a,t])=>`<div><div class="m-top"><span>${n}</span><span>${a} / ${t}g</span></div><div class="m-bar"><div class="m-fill" style="width:${a/t*100}%"></div></div></div>`).join('')}</div></div>
+      <div class="card"><div class="lbl">Today's meals</div>${[['Oats & whey','Breakfast · 520 kcal'],['Chicken & rice','Lunch · 740 kcal'],['Greek yogurt','Snack · 180 kcal']].map(([n,s])=>`<div class="foodrow"><div><div class="f-nm">${n}</div><div class="f-sub">${s}</div></div></div>`).join('')}</div>`;
+    R['nutrition:Foods']=()=>`<div class="searchbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Search foods, recipes…</div>
+      ${[['Chicken breast','per 100g · 165 kcal · 31P'],['White rice, cooked','per 100g · 130 kcal · 2.7P'],['Whey protein','per scoop · 120 kcal · 24P'],['Olive oil','per 10g · 88 kcal · 0P'],['Greek yogurt 2%','per 100g · 73 kcal · 10P']].map(([n,s])=>`<div class="foodrow"><div><div class="f-nm">${n}</div><div class="f-sub">${s}</div></div><div class="f-add" onclick="toast('Logged ${n}')">+</div></div>`).join('')}`;
+    R['nutrition:Trends']=()=>`<div class="card" style="border-color:rgba(52,211,153,.24)"><div class="lbl">7-day trend</div><div class="ph" style="margin-top:4px"><div class="pstat"><div class="v" style="color:var(--nutrition)">5/7</div><div class="l">On target</div></div><div class="pstat"><div class="v" style="color:var(--nutrition)">2,510</div><div class="l">Avg kcal</div></div><div class="pstat"><div class="v" style="color:var(--nutrition)">−0.4</div><div class="l">kg trend</div></div></div></div>
+      <div class="card"><div class="lbl">Coach</div><div style="font-size:13.5px;line-height:1.5;color:var(--t2)">Weight is trending down in a controlled range. <b style="color:var(--text)">Hold targets</b> this week — no change needed.</div></div>`;
+    const comingSoon=(dom,accent,kick,bullets)=>`<div class="cs"><div class="cs-mk">${chev(76,accent)}</div><div class="cs-kick" style="color:${accent}">${kick}</div><div class="cs-h serif">Coming soon</div><div class="cs-p">We'd rather ship it right than half-baked. Here's what's being forged for ${dom}:</div><div class="cs-list">${bullets.map(b=>`<div class="cs-item"><span class="ci-dot" style="background:${accent}"></span>${b}</div>`).join('')}</div><div class="cs-foot">In the workshop</div></div>`;
+    R['sleep:']=()=>comingSoon('Sleep','#4c8bf5','Sleep',['Bedtime consistency & sleep-debt tracking','Recovery vs. training-load overlay','Gentle wind-down reminders']);
+    R['finance:']=()=>comingSoon('Finance','#fbbf24','Finances',['Budgets that adapt to your month','Spending-pace alerts before you overshoot','Category trends & saving goals']);
+
+    function render(){
+      const wm=document.getElementById('wordmark');
+      const sn=document.getElementById('subnav');
+      const body=document.getElementById('body');
+      if(view==='home'){
+        document.documentElement.style.setProperty('--acc','var(--fitness)');
+        wm.classList.add('is-home'); document.getElementById('domName').textContent='IronLog';
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+        sn.style.display='none'; sn.innerHTML='';
+        body.innerHTML=homeHTML();
+        // home wiring
+        const seg=body.querySelector('#seg');
+        if(seg) seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{recapRange=b.dataset.r; render();});
+        body.querySelectorAll('[data-go]').forEach(el=>el.onclick=(e)=>{e.stopPropagation();const d=el.dataset.go;if(el.dataset.sub)sub[d]=el.dataset.sub;enterDomain(d);});
+        body.querySelectorAll('.sg-x').forEach(x=>x.onclick=()=>{const c=x.closest('.sg');c.style.transition='.25s var(--ease)';c.style.opacity='0';c.style.transform='translateX(20px)';setTimeout(()=>c.remove(),250);});
+      } else {
+        document.documentElement.style.setProperty('--acc',ACCENT[view]);
+        wm.classList.remove('is-home'); document.getElementById('domName').textContent=view.charAt(0).toUpperCase()+view.slice(1);
+        document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.d===view));
+        const subs=SUBS[view];
+        if(subs.length){sn.style.display='flex';sn.innerHTML=subs.map(s=>`<button class="subtab${sub[view]===s?' on':''}" data-s="${s}">${s}</button>`).join('');
+          sn.querySelectorAll('.subtab').forEach(b=>b.onclick=()=>{sub[view]=b.dataset.s;render();});}
+        else{sn.style.display='none';sn.innerHTML='';}
+        const key=subs.length?view+':'+sub[view]:view+':';
+        body.innerHTML=(R[key]||(()=>'<div class="card">—</div>'))();
+        body.querySelectorAll('[data-sub]').forEach(el=>el.onclick=(e)=>{e.stopPropagation();sub[view]=el.dataset.sub;render();});
+      }
+      body.scrollTop=0;
+    }
+    function enterDomain(d){view=d;render();}
+    document.getElementById('wordmark').onclick=()=>{view='home';render();};
+    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>enterDomain(t.dataset.d));
+    render();
+  </script>
+</body>
+</html>
