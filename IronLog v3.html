@@ -21,7 +21,8 @@
 <script src="app-core.js"></script>
 <script src="app-storage.js"></script>
 <script src="app-fitness.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app-nav.js"></script>
+<script src="app-insights.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
@@ -50,6 +51,8 @@
   --acc-soft: #ffb38a;
   --acc-dim:  rgba(255,107,53,0.12);
   --acc-glow: rgba(255,107,53,0.30);
+  /* ── Domain accents (V4 two-tier nav) — active domain drives --acc via JS ── */
+  --fitness:#ff6b35; --nutrition:#34d399; --sleep:#4c8bf5; --finance:#fbbf24;
   /* ── Semantic ── */
   --red:    #d4332f;
   --success:#7fb069;
@@ -270,6 +273,10 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
   background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite
 }
 .chart-skel.full{height:100%;width:100%}
+.svg-chart{width:100%;height:150px;display:block}
+.svg-chart.full{height:100%;min-height:340px}
+.svg-chart svg{width:100%;height:100%;display:block;overflow:visible}
+.svg-chart text{font-family:'Geist Mono',monospace;letter-spacing:0}
 @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
 
 /* Swipe-to-delete */
@@ -1403,6 +1410,74 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 .bw3-goal-fill{height:100%;background:linear-gradient(90deg,var(--acc-soft),var(--acc));border-radius:3px;transition:width .5s}
 .bw3-goal-txt{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:5px;font-family:'Geist Mono',monospace}
 
+/* ══ V4 two-tier nav + Today hub ══════════════════════════════════════════ */
+/* top-bar wordmark (replaces greeting title; taps back to Today) */
+.tb-wordmark{display:flex;align-items:center;gap:9px;position:relative;flex:1;min-width:0;cursor:pointer;background:none;border:0;padding:0;text-align:left}
+.tb-wordmark .tb-mk{width:24px;height:24px;display:block;flex-shrink:0}
+.tb-wordmark .tb-nm{font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:.2px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-wordmark .tb-home-dot{position:absolute;left:33px;bottom:-4px;width:16px;height:3px;border-radius:2px;background:var(--acc);box-shadow:0 0 8px var(--acc-glow);opacity:0;transition:opacity .2s}
+.tb-wordmark.is-home .tb-home-dot{opacity:1}
+
+/* TIER-2 segmented sub-nav */
+.subnav{display:flex;gap:4px;padding:0 16px 10px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.subnav::-webkit-scrollbar{display:none}
+.subnav.hidden{display:none}
+.subnav-tab{flex:0 0 auto;font-family:'Geist',system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--t2);background:transparent;border:0;padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.15s var(--ease);white-space:nowrap}
+.subnav-tab.on{background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc)}
+
+/* Today insights hub */
+.td-scroll{padding:0 2px 24px}
+.td-greet{padding:4px 4px 16px}
+.td-greet .td-day{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3)}
+.td-greet .td-hi{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.05;margin-top:5px}
+.td-greet .td-hi em{font-style:italic;color:var(--acc-soft)}
+.td-seg{display:inline-flex;gap:3px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-pill);padding:3px;margin-bottom:14px}
+.td-seg button{font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);background:transparent;border:0;padding:7px 14px;border-radius:var(--r-pill);cursor:pointer;transition:.15s var(--ease)}
+.td-seg button.on{background:var(--acc-dim);color:var(--acc)}
+.td-recap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.td-rc{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+.td-rc:active{transform:scale(.985)}
+.td-rc .td-rc-edge{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.td-rc .td-rc-top{display:flex;align-items:center;gap:7px}
+.td-rc .td-rc-dot{width:7px;height:7px;border-radius:50%}
+.td-rc .td-rc-name{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
+.td-rc .td-rc-val{font-family:'Instrument Serif',serif;font-size:26px;line-height:1;letter-spacing:-.5px}
+.td-rc .td-rc-val small{font-size:13px;color:var(--t2);font-family:'Geist',sans-serif}
+.td-rc .td-rc-sub{font-size:11px;color:var(--t2)}
+.td-seclbl{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin:2px 4px 12px}
+.td-seclbl .td-pip{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.td-sugg{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.td-sg{display:flex;gap:13px;align-items:flex-start;background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px;position:relative;overflow:hidden}
+.td-sg-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.td-sg-ic svg{width:20px;height:20px}
+.td-sg-body{flex:1;min-width:0}
+.td-sg-dom{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.td-sg-txt{font-size:14px;line-height:1.4;color:var(--text)}
+.td-sg-txt b{color:var(--text)}
+.td-sg-cta{margin-top:11px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:8px 13px;border-radius:var(--r-pill);border:1px solid var(--border-hi);background:rgba(245,241,232,.04);color:var(--text);cursor:pointer}
+.td-sg-cta svg{width:13px;height:13px}
+.td-sg-x{position:absolute;top:11px;right:12px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;cursor:pointer;opacity:.6;border:0;background:none}
+.td-sg-x:hover{opacity:1}
+.td-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.td-tile{background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px 14px;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden;cursor:pointer;transition:.15s var(--ease)}
+.td-tile:active{transform:scale(.985)}
+.td-tile .td-t-glow{position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;opacity:.16;filter:blur(8px)}
+.td-tile .td-t-top{display:flex;align-items:center;gap:8px}
+.td-tile .td-t-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.td-tile .td-t-ic svg{width:15px;height:15px}
+.td-tile .td-t-nm{font-size:14px;font-weight:700}
+.td-tile .td-t-val{font-family:'Geist Mono',monospace;font-size:12px;color:var(--t2);margin-top:2px}
+
+/* Coming-Soon (Sleep/Finance) */
+.cs-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 28px;gap:6px;min-height:60vh}
+.cs-mk{margin-bottom:8px;filter:drop-shadow(0 8px 24px rgba(0,0,0,.4))}
+.cs-kick{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase}
+.cs-h{font-family:'Instrument Serif',serif;font-size:34px;line-height:1.1;margin-top:8px;white-space:nowrap}
+.cs-p{color:var(--t2);font-size:13.5px;line-height:1.55;margin-top:14px;max-width:280px}
+.cs-list{margin-top:22px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:9px}
+.cs-item{display:flex;align-items:center;gap:11px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;text-align:left;font-size:13px;color:var(--t2)}
+.cs-item .cs-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cs-foot{margin-top:20px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)}
 </style>
 </head>
 <body>
@@ -1424,15 +1499,26 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 <div class="main">
   <!-- Top context bar -->
   <div class="topbar" id="topbar">
-    <div class="tb-title" id="tbTitle"><em>Good</em> morning</div>
+    <button class="tb-wordmark is-home" id="tbWordmark" onclick="goToday()" title="Home">
+      <span class="tb-mk" id="tbMark"></span>
+      <span class="tb-nm" id="tbName">IronLog</span>
+      <span class="tb-home-dot"></span>
+      <span id="tbTitle" style="display:none"></span>
+    </button>
     <button class="tb-gear" id="settingsBtn" onclick="showSettingsSheet()" title="Settings">&#9881;</button>
   </div>
+
+  <!-- TIER-2 sub-nav (per-domain; hidden on Home & Coming-Soon) -->
+  <div class="subnav hidden" id="subnav"></div>
 
   <!-- Page container -->
   <div class="pages" id="pages">
 
-    <!-- HOME -->
-    <div class="page active" id="page-home"><div id="homeContent"></div></div>
+    <!-- TODAY (app home / insights hub) -->
+    <div class="page active" id="page-today"><div id="todayContent"></div></div>
+
+    <!-- FITNESS · Home sub-tab (dashboard) -->
+    <div class="page" id="page-home"><div id="homeContent"></div></div>
 
     <!-- TRAIN — splits injected here dynamically -->
     <div class="page" id="page-train"><div id="trainContent"></div></div>
@@ -1598,7 +1684,7 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
       </div>
       <button class="fc-close" onclick="closeFullChart()">&#10005;</button>
     </div>
-    <div class="fc-canvas-wrap"><div class="chart-skel full" id="fcChart-skel"></div><canvas id="fcChart" style="display:none"></canvas></div>
+    <div class="fc-canvas-wrap"><div class="chart-skel full" id="fcChart-skel"></div><div id="fcChart" class="svg-chart full" style="display:none"></div></div>
     <div class="fc-foot">Top weight per session · all-time</div>
   </div>
 </div>
@@ -1692,6 +1778,12 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function jsa(s){return esc(String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"))}
 function nRound(v){return Math.round((Number(v)||0)*10)/10}
 function moneyRound(v){return Math.round((Number(v)||0)*100)/100}
+function haptic(pattern){
+  try{
+    if(navigator.userActivation&&navigator.userActivation.hasBeenActive===false)return;
+    if(navigator.vibrate)navigator.vibrate(pattern);
+  }catch(_){}
+}
 function nutritionDefaults(){
   return {
     targets:{
@@ -1742,6 +1834,16 @@ function ensureAppShell(db){
   if(!db.app)db.app={activeDomain:'fitness',version:1};
   if(!db.app.activeDomain)db.app.activeDomain='fitness';
   if(!db.app.version)db.app.version=1;
+  if(typeof IronLogNav!=='undefined'&&typeof IronLogNav.normalizeNav==='function'){
+    IronLogNav.normalizeNav(db);
+  }else{
+    if(!db.app.lastView)db.app.lastView='home';
+    if(!db.app.lastSub)db.app.lastSub={};
+    if(!db.app.lastSub.fitness)db.app.lastSub.fitness='Home';
+    if(!db.app.lastSub.nutrition)db.app.lastSub.nutrition='Today';
+    if(!db.settings)db.settings={};
+    if(!db.settings.domainsEnabled)db.settings.domainsEnabled={fitness:true,nutrition:true,sleep:false,finance:false};
+  }
   ensureSleep(db);
   ensureFinance(db);
   return db.app;
@@ -2115,7 +2217,7 @@ function _releaseWakeLock(){
   restWakeLock=null;
 }
 function _fireRestAlarm(){
-  try{navigator.vibrate&&navigator.vibrate([200,100,200,100,200])}catch(_){}
+  haptic([200,100,200,100,200]);
   if('Notification' in window&&Notification.permission==='granted'){
     const body='Hit your next set.';
     const opts={body,icon:'icon-192.png',badge:'icon-192.png',tag:'ironlog-rest',renotify:true,vibrate:[200,100,200,100,200]};
@@ -2195,7 +2297,7 @@ function setRestPreset(secs){
   const ringEl=document.getElementById('restRing');
   if(numEl)numEl.textContent=secs;
   if(ringEl){ringEl.style.strokeDashoffset='0'}
-  if(navigator.vibrate)navigator.vibrate(15);
+  haptic(15);
 }
 function adjustRestTime(delta){
   const rem=Math.max(5,_restRemaining()+delta);
@@ -2289,7 +2391,7 @@ document.addEventListener('input',e=>{
         const next=Math.max(0,Math.min(500,Math.round((cur+diff*2.5)*10)/10));
         inp.value=next;
         if(valSpan)valSpan.textContent=next;
-        try{navigator.vibrate&&navigator.vibrate(6)}catch(_){}
+        haptic(6);
       }
       if(Math.abs(_gs.startY-e.clientY)>6)_gs.moved=true;
     } else {
@@ -2302,7 +2404,7 @@ document.addEventListener('input',e=>{
       if(val!==_gs.lastVal){
         _gs.lastVal=val;
         sc3RpeSliderUpdate(_gs.exId,_gs.si,val,true); // skipHaptic=true, fire manually
-        try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+        haptic(8);
       }
     }
   });
@@ -2459,7 +2561,7 @@ function sc3RpeSliderUpdate(exId,i,val,skipHaptic){
   if(thumb){thumb.style.left=pct+'%';thumb.classList.add('has-val')}
   if(hidden)hidden.value=val;
   cacheDraft(exId,i);
-  if(!skipHaptic)try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+  if(!skipHaptic)haptic(8);
 }
 function sc3WheelEdit(exId,i){
   const wd=document.getElementById('wd-'+exId+'-'+i);
@@ -2496,7 +2598,7 @@ function tryStartRest(exId,i){
   if(w>0||r>0){
     cacheDraft(exId,i);
     startRest(w>0?`${r>0?r+' reps @ ':''}${w}kg — beat it next set`:'Rest');
-    try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}
+    haptic(20);
   }
 }
 function logForm(exId,cat,col,last){
@@ -2581,7 +2683,7 @@ function onWeightEntry(exId,i){
   if(dk&&!dk.classList.contains('on')){
     dk.classList.add('on');
     dk.classList.remove('bounce');void dk.offsetWidth;dk.classList.add('bounce');
-    try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}
+    haptic(20);
     const rVal=parseNum(document.getElementById(`r-${exId}-${i}`)?.value);
     startRest(`${rVal>0?rVal+' reps @ ':''}${wVal}kg — beat it next set`);
   }
@@ -2594,7 +2696,7 @@ function tDone(exId,i){
   if(card)card.classList.toggle('sc3-done-card',el.classList.contains('on'));
   if(el.classList.contains('on')){
     el.classList.remove('bounce');void el.offsetWidth;el.classList.add('bounce');
-    try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}
+    haptic(20);
     const wVal=parseNum(document.getElementById(`w-${exId}-${i}`)?.value);
     const rVal=parseNum(document.getElementById(`r-${exId}-${i}`)?.value);
     startRest(wVal>0?`${rVal>0?rVal+' reps @ ':''}${wVal}kg — beat it next set`:'');
@@ -2626,10 +2728,10 @@ function saveEx(exId,cat){
   if(curSplit)renderSplit(curSplit,cc(cat));else renderMuscle(cat,cc(cat));
   updateStreak();
   if(newBest>prevBest&&newBest>0){
-    try{navigator.vibrate&&navigator.vibrate([40,30,80,30,40])}catch(_){}
+    haptic([40,30,80,30,40]);
     toast(`🏆 New PR! ${newBest}kg`);
   }else{
-    try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}
+    haptic(15);
     toast('Saved!');
   }
 }
@@ -3310,6 +3412,49 @@ function renderProgressStatsHeader(period){
   </div>`;
 }
 let _radarChart=null;
+function lineChartSVG(labels,data,color,unit){
+  const W=640,H=220,pad={l:44,r:18,t:18,b:36};
+  const nums=(data||[]).map(v=>Number(v)||0);
+  if(nums.length<2)return '<div class="no-data">Not enough chart data yet</div>';
+  const min=Math.min(...nums),max=Math.max(...nums),range=(max-min)||1;
+  const x=i=>pad.l+(i/(nums.length-1))*(W-pad.l-pad.r);
+  const y=v=>pad.t+(1-(v-min)/range)*(H-pad.t-pad.b);
+  const pts=nums.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area=`${pts} ${x(nums.length-1).toFixed(1)},${H-pad.b} ${pad.l},${H-pad.b}`;
+  const last=nums[nums.length-1];
+  const first=nums[0];
+  const delta=last-first;
+  const labelEvery=Math.max(1,Math.ceil(labels.length/4));
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trend chart">
+    <defs><linearGradient id="lineGrad${Math.round(Math.random()*1e6)}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <g stroke="rgba(245,241,232,.06)" stroke-width="1">${[0,1,2,3].map(i=>`<line x1="${pad.l}" x2="${W-pad.r}" y1="${pad.t+i*(H-pad.t-pad.b)/3}" y2="${pad.t+i*(H-pad.t-pad.b)/3}"/>`).join('')}</g>
+    <polygon points="${area}" fill="rgba(255,107,53,.12)"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    ${nums.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i===nums.length-1?4:2.5}" fill="${color}"><title>${labels[i]||''}: ${v}${unit||''}</title></circle>`).join('')}
+    <text x="${pad.l}" y="14" fill="var(--t2)" font-size="10">${min.toFixed(0)}-${max.toFixed(0)}${unit||''}</text>
+    <text x="${W-pad.r}" y="14" text-anchor="end" fill="${delta>=0?'var(--success)':'var(--red)'}" font-size="10">${delta>=0?'+':''}${delta.toFixed(0)}${unit||''}</text>
+    ${labels.map((l,i)=>i%labelEvery===0||i===labels.length-1?`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" fill="var(--t3)" font-size="9">${esc(l)}</text>`:'').join('')}
+  </svg>`;
+}
+function radarChartSVG(labels,data,colors){
+  const W=320,H=220,cx=160,cy=112,r=76;
+  const nums=(data||[]).map(v=>Number(v)||0);
+  const max=Math.max(1,...nums);
+  const n=labels.length;
+  if(n<3)return '';
+  const point=(i,scale=1)=>{
+    const a=-Math.PI/2+(i/n)*Math.PI*2;
+    return [cx+Math.cos(a)*r*scale,cy+Math.sin(a)*r*scale];
+  };
+  const poly=nums.map((v,i)=>point(i,v/max).map(x=>x.toFixed(1)).join(',')).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Muscle coverage radar">
+    <g fill="none" stroke="rgba(245,241,232,.07)" stroke-width="1">${[.33,.66,1].map(s=>`<polygon points="${labels.map((_,i)=>point(i,s).map(x=>x.toFixed(1)).join(',')).join(' ')}"/>`).join('')}</g>
+    <g stroke="rgba(245,241,232,.07)" stroke-width="1">${labels.map((_,i)=>{const p=point(i);return `<line x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}"/>`}).join('')}</g>
+    <polygon points="${poly}" fill="rgba(255,107,53,.16)" stroke="rgba(255,107,53,.85)" stroke-width="2.5"/>
+    ${nums.map((v,i)=>{const p=point(i,v/max);return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${colors[i]||'#ff6b35'}"><title>${esc(labels[i])}: ${v}</title></circle>`}).join('')}
+    ${labels.map((l,i)=>{const p=point(i,1.23);return `<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="var(--t2)" font-size="9">${esc(l)}</text>`}).join('')}
+  </svg>`;
+}
 function renderProgressRadar(period='week'){
   const wrap=document.getElementById('pst3Radar');if(!wrap)return;
   const now=new Date();const td=today();
@@ -3325,52 +3470,21 @@ function renderProgressRadar(period='week'){
   if(activeMuscles.length<3){wrap.innerHTML='';return;}
   const labels=activeMuscles.map(m=>CAT_LBL[m]||m);
   const data=activeMuscles.map(m=>freq[m]);
-  const colors=activeMuscles.map(m=>`var(--${m},'#ff6b35')`);
-  wrap.innerHTML=`<div class="pst3-radar-card">
-    <div class="pst3-radar-title">Muscle Coverage</div>
-    <div class="pst3-radar-wrap"><canvas id="pst3RadarCanvas"></canvas></div>
-    <div class="pst3-radar-legend" id="pst3RadarLegend"></div>
-  </div>`;
-  const legEl=document.getElementById('pst3RadarLegend');
   const muscleColMap={'chest':'#ff5c38','triceps':'#ff9f38','back':'#c084fc',
     'biceps':'#ff8a5c','legs':'#60a5fa','shoulders':'#fbbf24','abs':'#34d399',
     'forearms':'#f472b6','cardio':'#fb7185'};
+  const colors=activeMuscles.map(m=>muscleColMap[m]||'#ff6b35');
+  wrap.innerHTML=`<div class="pst3-radar-card">
+    <div class="pst3-radar-title">Muscle Coverage</div>
+    <div class="pst3-radar-wrap">${radarChartSVG(labels,data,colors)}</div>
+    <div class="pst3-radar-legend" id="pst3RadarLegend"></div>
+  </div>`;
+  const legEl=document.getElementById('pst3RadarLegend');
   activeMuscles.forEach((m,i)=>{
-    const col=muscleColMap[m]||'#ff6b35';
+    const col=colors[i]||'#ff6b35';
     const div=document.createElement('div');div.className='pst3-radar-leg-item';
     div.innerHTML=`<div class="pst3-radar-leg-dot" style="background:${col}"></div>${labels[i]}: ${data[i]}`;
     legEl.appendChild(div);
-  });
-  const ctx=document.getElementById('pst3RadarCanvas');
-  if(!ctx)return;
-  if(_radarChart){_radarChart.destroy();_radarChart=null;}
-  _radarChart=new Chart(ctx,{
-    type:'radar',
-    data:{
-      labels:labels,
-      datasets:[{
-        data:data,
-        backgroundColor:'rgba(255,107,53,0.15)',
-        borderColor:'rgba(255,107,53,0.8)',
-        borderWidth:2,
-        pointBackgroundColor:'rgba(255,107,53,1)',
-        pointRadius:4,
-        pointHoverRadius:6
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      scales:{r:{
-        beginAtZero:true,ticks:{stepSize:1,color:'rgba(168,161,149,0.6)',font:{size:9},
-          backdropColor:'transparent'},
-        grid:{color:'rgba(245,241,232,0.07)'},
-        pointLabels:{color:'var(--t2)',font:{size:10,weight:'600'}},
-        angleLines:{color:'rgba(245,241,232,0.07)'}
-      }},
-      plugins:{legend:{display:false},tooltip:{
-        callbacks:{label:ctx=>`${ctx.raw} set${ctx.raw!==1?'s':''}`}
-      }}
-    }
   });
 }
 
@@ -3386,7 +3500,7 @@ function renderProgress(){
       <div class="pr-card"><div class="pr-val" style="color:${col}">${bc}<span class="pr-unit"> kcal</span></div><div class="pr-lbl">Best Calories</div></div>
       <div class="pr-card"><div class="pr-val" style="color:${col}">${logs.length}</div><div class="pr-lbl">Sessions</div></div>
     </div>
-    <div class="chart-box"><div class="cbt">Duration (min)</div><div class="cw"><div class="chart-skel" id="chA-skel"></div><canvas id="chA" style="display:none"></canvas></div></div>`;
+    <div class="chart-box"><div class="cbt">Duration (min)</div><div class="cw"><div class="chart-skel" id="chA-skel"></div><div id="chA" class="svg-chart" style="display:none"></div></div></div>`;
     mkChart('chA',logs.map(l=>fd(l.date)),logs.map(l=>parseNum(l.duration)),col);return;
   }
   const logs=DB.workouts.filter(w=>w.cat===val&&w.exId).sort((a,b)=>a.date.localeCompare(b.date));
@@ -3406,7 +3520,7 @@ function renderProgress(){
     <div class="pr-card"><div class="pr-val" style="color:${col}">${dates.length}</div><div class="pr-lbl">Sessions</div></div>
     <div class="pr-card"><div class="pr-val" style="color:${col}">${logs.length}</div><div class="pr-lbl">Sets Logged</div></div>
   </div>
-  <div class="chart-box"><div class="cbt">Volume per Session (kg)</div><div class="cw"><div class="chart-skel" id="chA-skel"></div><canvas id="chA" style="display:none"></canvas></div></div>
+  <div class="chart-box"><div class="cbt">Volume per Session (kg)</div><div class="cw"><div class="chart-skel" id="chA-skel"></div><div id="chA" class="svg-chart" style="display:none"></div></div></div>
   <div class="pr-ex-list">${exBests.map(e=>`<div class="pr-ex-row" onclick="openFullChart('${e.exId}','${e.name.replace(/'/g,'&#39;')}','${val}')"><div class="pre-nm">${e.name}</div><div class="pre-val">${e.best}kg · ${e.sessions} sess<br>${fd(e.lastDate)}</div></div>`).join('')}</div>`;
   mkChart('chA',dates.map(d=>fd(d)),volByDate,col);
 }
@@ -3429,41 +3543,15 @@ function openFullChart(exId,name,cat){
     if(fcCv)fcCv.style.display='block';
     const dates=logs.map(l=>fd(l.date));
     const data=logs.map(w=>maxWt(w.sets));
-    if(chartInst.fcChart){try{chartInst.fcChart.destroy()}catch(_){}}
-    const ctx=document.getElementById('fcChart').getContext('2d');
-    chartInst.fcChart=new Chart(ctx,{
-      type:'line',
-      data:{labels:dates,datasets:[{data,borderColor:col,backgroundColor:col+'22',borderWidth:2.5,pointRadius:4,pointBackgroundColor:col,tension:.3,fill:true}]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},
-        scales:{
-          x:{ticks:{color:'#a8a195',font:{family:'Geist Mono',size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
-          y:{ticks:{color:'#a8a195',font:{family:'Geist Mono',size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
-        }
-      }
-    });
+    if(fcCv)fcCv.innerHTML=lineChartSVG(dates,data,col,'kg');
   },50);
 }
-function closeFullChart(){document.getElementById('fcOv').classList.remove('open');if(chartInst.fcChart){try{chartInst.fcChart.destroy()}catch(_){}delete chartInst.fcChart}}
+function closeFullChart(){document.getElementById('fcOv').classList.remove('open');const fc=document.getElementById('fcChart');if(fc)fc.innerHTML=''}
 function mkChart(id,labels,data,color){
-  if(chartInst[id]){try{chartInst[id].destroy()}catch(_){}}
   const cv=document.getElementById(id);if(!cv)return;
   const skel=document.getElementById(id+'-skel');
   if(skel){skel.style.display='none';cv.style.display='block'}
-  const ctx=cv.getContext('2d');if(!ctx)return;
-  chartInst[id]=new Chart(ctx,{
-    type:'line',
-    data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'18',borderWidth:2,pointRadius:3,pointBackgroundColor:color,tension:.35,fill:true}]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{ticks:{color:'#6b6359',font:{family:'Geist Mono',size:9}},grid:{color:'rgba(255,255,255,0.04)'}},
-        y:{ticks:{color:'#6b6359',font:{family:'Geist Mono',size:9}},grid:{color:'rgba(255,255,255,0.04)'}}
-      }
-    }
-  });
+  cv.innerHTML=lineChartSVG(labels,data,color,id==='chA'?'':'');
 }
 
 // ── Body Weight ───────────────────────────────────────────────────────────────
@@ -3805,84 +3893,129 @@ function importData(e){
 let _activeTab = 'fitness';
 let _activeProgressSub = 'progress';
 
-const _TAB_ORDER = ['fitness','nutrition','sleep','finance'];
-function switchTab(tab) {
-  const alias={home:'fitness'};
-  tab=alias[tab]||tab;
-  const prevTab = _activeTab;
-  _activeTab = tab;
-  if(DB&&DB.app){DB.app.activeDomain=tab;saveDB()}
-  const prevIdx = _TAB_ORDER.indexOf(prevTab);
-  const nextIdx = _TAB_ORDER.indexOf(tab);
-  const goingRight = nextIdx > prevIdx;
+// ── V4 two-tier navigation ────────────────────────────────────────────────
+// navState is owned here; pure transitions/resolution live in app-nav.js.
+let navState = (typeof IronLogNav !== 'undefined') ? IronLogNav.defaultNavState() : { view:'home', sub:{fitness:'Home',nutrition:'Today'} };
+const _NAV_ORDER = ['home','fitness','nutrition','sleep','finance'];
+const DOMAIN_ACCENTS = {
+  fitness:{acc:'#ff6b35',soft:'#ffb38a',dim:'rgba(255,107,53,0.12)',glow:'rgba(255,107,53,0.30)'},
+  nutrition:{acc:'#34d399',soft:'#8ee9c4',dim:'rgba(52,211,153,0.14)',glow:'rgba(52,211,153,0.28)'},
+  sleep:{acc:'#4c8bf5',soft:'#92b8ff',dim:'rgba(76,139,245,0.14)',glow:'rgba(76,139,245,0.28)'},
+  finance:{acc:'#fbbf24',soft:'#ffd98a',dim:'rgba(251,191,36,0.14)',glow:'rgba(251,191,36,0.28)'}
+};
+const FORGED_CHEVRON = (size,accGrad)=>`<svg width="${size}" height="${size}" viewBox="0 0 200 200" style="display:block">
+  <defs><linearGradient id="mkf${size}" x1="0" y1="0" x2="0.15" y2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset="0.5" stop-color="#8c9298"/><stop offset="1" stop-color="#2a2d31"/></linearGradient>
+  <linearGradient id="mka${size}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${accGrad[0]}"/><stop offset="0.5" stop-color="${accGrad[1]}"/><stop offset="1" stop-color="${accGrad[2]}"/></linearGradient></defs>
+  <polygon points="100,30 168,98 142,98 100,56 58,98 32,98" fill="url(#mkf${size})"/>
+  <polygon points="58,98 100,56 142,98 136,98 100,62 64,98" fill="url(#mka${size})" opacity="0.95"/>
+  <polygon points="100,92 168,160 142,160 100,118 58,160 32,160" fill="url(#mkf${size})"/>
+  <polygon points="58,160 100,118 142,160 136,160 100,124 64,160" fill="url(#mka${size})" opacity="0.95"/></svg>`;
 
-  document.querySelectorAll('.v3-tab').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('tab-' + tab);
+function applyDomainAccent(view){
+  const key = (view==='home') ? 'fitness' : view;
+  const a = DOMAIN_ACCENTS[key] || DOMAIN_ACCENTS.fitness;
+  const r = document.documentElement.style;
+  r.setProperty('--acc', a.acc);
+  r.setProperty('--acc-soft', a.soft);
+  r.setProperty('--acc-dim', a.dim);
+  r.setProperty('--acc-glow', a.glow);
+}
+function injectWordmark(){
+  const mk = document.getElementById('tbMark');
+  if (mk) mk.innerHTML = FORGED_CHEVRON(24, ['#ffd9bd','#ff8a4d','#ff5a1f']);
+}
+function updateWordmark(view){
+  const nm = document.getElementById('tbName');
+  const wm = document.getElementById('tbWordmark');
+  if (nm) nm.textContent = (view==='home') ? 'IronLog' : (view.charAt(0).toUpperCase()+view.slice(1));
+  if (wm) wm.classList.toggle('is-home', view==='home');
+}
+function updateBottomBarActive(view){
+  document.querySelectorAll('.v3-tab').forEach(b=>b.classList.remove('active'));
+  const btn = (view!=='home') ? document.getElementById('tab-'+view) : null;
   if (btn) btn.classList.add('active');
-  try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}
+}
+function renderSubnav(view){
+  const sn = document.getElementById('subnav');
+  if (!sn) return;
+  const subs = (typeof IronLogNav!=='undefined') ? (IronLogNav.SUBS[view]||[]) : [];
+  const coming = (typeof IronLogNav!=='undefined') && IronLogNav.isComingSoon(view, DB && DB.settings);
+  if (!subs.length || coming){ sn.classList.add('hidden'); sn.innerHTML=''; return; }
+  const active = navState.sub[view];
+  sn.classList.remove('hidden');
+  sn.innerHTML = subs.map(s=>`<button class="subnav-tab${s===active?' on':''}" onclick="setSub('${view}','${s}')">${s}</button>`).join('');
+}
+function screenTarget(view, sub){
+  if (view==='home') return {page:'page-today', render:renderToday};
+  if (view==='fitness') return ({
+    Home:{page:'page-home', render:renderHome},
+    Train:{page:'page-train', render:renderTrainTab},
+    Progress:{page:'page-progress-hub', render:()=>switchProgressTab(_activeProgressSub,false)},
+    History:{page:'page-history', render:renderHistory}
+  })[sub] || {page:'page-home', render:renderHome};
+  if (view==='nutrition') return ({
+    Today:{page:'page-nutrition', render:renderNutrition},
+    Foods:{page:'page-nutrition', render:renderNutritionFoods},
+    Trends:{page:'page-nutrition', render:renderNutritionTrends}
+  })[sub] || {page:'page-nutrition', render:renderNutrition};
+  if (view==='sleep') return {page:'page-sleep', render:renderSleep};
+  if (view==='finance') return {page:'page-finance', render:renderFinance};
+  return {page:'page-today', render:renderToday};
+}
+function navigate(view, sub){
+  const prevView = navState.view;
+  if (typeof IronLogNav!=='undefined'){
+    navState = IronLogNav.setView(navState, view);
+    if (sub && IronLogNav.SUBS[view] && IronLogNav.SUBS[view].indexOf(sub)!==-1) navState = IronLogNav.setSubFor(navState, view, sub);
+    view = navState.view;
+  } else { navState.view = view; if (sub) navState.sub[view]=sub; }
+  const useSub = (IronLogNav && IronLogNav.SUBS[view] && IronLogNav.SUBS[view].length) ? navState.sub[view] : '';
+  _activeTab = (view==='home') ? 'fitness' : view;
 
+  applyDomainAccent(view);
+  updateWordmark(view);
+  updateBottomBarActive(view);
+  renderSubnav(view);
+  haptic(8);
+
+  const target = screenTarget(view, useSub);
+  const goingRight = _NAV_ORDER.indexOf(view) >= _NAV_ORDER.indexOf(prevView);
   const animClasses = ['tab-enter-right','tab-enter-left','tab-exit-right','tab-exit-left'];
   const prevPage = document.querySelector('.page.active');
-  if (prevPage && prevTab !== tab) {
-    animClasses.forEach(c => prevPage.classList.remove(c));
-    prevPage.classList.add(goingRight ? 'tab-exit-right' : 'tab-exit-left');
-    setTimeout(() => { prevPage.classList.remove('active','tab-exit-right','tab-exit-left'); }, 220);
-  } else if (prevPage) {
-    prevPage.classList.remove('active');
+  const newPage = document.getElementById(target.page);
+  if (prevPage && prevPage !== newPage){
+    animClasses.forEach(c=>prevPage.classList.remove(c));
+    prevPage.classList.add(goingRight?'tab-exit-right':'tab-exit-left');
+    setTimeout(()=>{prevPage.classList.remove('active','tab-exit-right','tab-exit-left');},220);
+  } else if (prevPage && prevPage!==newPage){ prevPage.classList.remove('active'); }
+  if (newPage){
+    animClasses.forEach(c=>newPage.classList.remove(c));
+    if (prevPage!==newPage) newPage.classList.add('active', goingRight?'tab-enter-right':'tab-enter-left');
+    setTimeout(()=>newPage.classList.remove('tab-enter-right','tab-enter-left'),300);
   }
+  if (typeof target.render==='function') target.render();
 
-  const pageMap = {fitness:'page-home',train:'page-train',nutrition:'page-nutrition',sleep:'page-sleep',finance:'page-finance',progress:'page-progress-hub',history:'page-history'};
-  const newPage = document.getElementById(pageMap[tab]);
-  if (newPage) {
-    animClasses.forEach(c => newPage.classList.remove(c));
-    newPage.classList.add('active', goingRight ? 'tab-enter-right' : 'tab-enter-left');
-    setTimeout(() => newPage.classList.remove('tab-enter-right','tab-enter-left'), 300);
-  }
-
-  if (tab === 'fitness') {
-    renderHome();
-    updateTopbar('fitness');
-  } else if (tab === 'train') {
-    renderTrainTab();
-    updateTopbar('train');
-  } else if (tab === 'nutrition') {
-    renderNutrition();
-    updateTopbar('nutrition');
-  } else if (tab === 'sleep') {
-    renderSleep();
-    updateTopbar('sleep');
-  } else if (tab === 'finance') {
-    renderFinance();
-    updateTopbar('finance');
-  } else if (tab === 'progress') {
-    switchProgressTab(_activeProgressSub, false);
-    updateTopbar('progress');
-  } else if (tab === 'history') {
-    renderHistory();
-    updateTopbar('history');
+  // persist nav position (optional fields; no data rewrite)
+  if (DB && DB.app){
+    DB.app.activeDomain = _activeTab;
+    if (typeof IronLogNav!=='undefined'){ const p=IronLogNav.toPersisted(navState); DB.app.lastView=p.lastView; DB.app.lastSub=p.lastSub; }
+    saveDB();
   }
 }
+function goToday(){ navigate('home'); }
+function enterDomain(d){ navigate(d, navState.sub[d]); }
+function setSub(d, s){ navigate(d, s); }
 
-function updateTopbar(tab) {
-  const titleEl = document.getElementById('tbTitle');
-  if (!titleEl) return;
-  const hr = new Date().getHours();
-  const greet = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
-  const labels = {
-    home: `Good <em>${greet}</em>`,
-    fitness: `Good <em>${greet}</em>`,
-    train: 'Train',
-    nutrition: 'Nutrition',
-    sleep: 'Sleep',
-    finance: 'Finances',
-    progress: 'Progress',
-    history: 'History'
-  };
-  titleEl.innerHTML = labels[tab] || tab;
-  // Update avatar
-  updateAvatar();
+// Thin legacy delegate so existing callers keep working.
+const _LEGACY_NAV = {
+  home:['home',null], fitness:['fitness','Home'], train:['fitness','Train'],
+  progress:['fitness','Progress'], history:['fitness','History'],
+  nutrition:['nutrition',null], sleep:['sleep',null], finance:['finance',null]
+};
+function switchTab(tab){
+  const m = _LEGACY_NAV[tab] || ['home',null];
+  navigate(m[0], m[1]);
 }
-
 function updateAvatar() {
   // Single-profile: avatar is static, nothing to update
 }
@@ -4344,25 +4477,7 @@ function renderHome() {
     </div>`).join('')}
   </div>` : '';
 
-  const sleepSum=sleepWeeklySummary(today());
-  const finSum=financeMonthSummary(monthKey());
-  const domainShell=`<div class="hc-card" style="margin-bottom:14px">
-    <div class="hc-lbl">IronLog domains</div>
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px">
-      <button class="nut-secondary" onclick="switchTab('fitness')" style="margin:0;text-align:left;border-color:rgba(255,107,53,.28)"><strong>Fitness</strong><br><span style="color:var(--t3);font-size:11px">${DB.workouts.length} logs</span></button>
-      <button class="nut-secondary" onclick="switchTab('nutrition')" style="margin:0;text-align:left;border-color:rgba(52,211,153,.24)"><strong>Nutrition</strong><br><span style="color:var(--t3);font-size:11px">${nutritionTotals(nutritionDay(today())).calories} kcal today</span></button>
-      <button class="nut-secondary" onclick="switchTab('sleep')" style="margin:0;text-align:left;border-color:rgba(76,139,245,.28)"><strong>Sleep</strong><br><span style="color:var(--t3);font-size:11px">${sleepSum.loggedDays}/7 logged</span></button>
-      <button class="nut-secondary" onclick="switchTab('finance')" style="margin:0;text-align:left;border-color:rgba(251,191,36,.28)"><strong>Finance</strong><br><span style="color:var(--t3);font-size:11px">${finSum.total} spent</span></button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px">
-      <button class="mini" onclick="switchTab('train')">Train</button>
-      <button class="mini" onclick="switchTab('progress')">Progress</button>
-      <button class="mini" onclick="switchTab('history')">History</button>
-    </div>
-  </div>`;
-
   pg.innerHTML = `<div class="hc-scroll">
-    ${domainShell}
     ${suggCard}
     <div class="hc-grid2">
       <div class="hc-card hc-stat" onclick="switchTab('progress')">
@@ -4383,10 +4498,163 @@ function renderHome() {
   </div>`;
 }
 
+// ── V4 domain icon/colour maps (shared by Today hub) ──────────────────────────
+const DOMAIN_ICON = {
+  fitness:'<path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/>',
+  nutrition:'<path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/>',
+  sleep:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  finance:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
+};
+const DOMAIN_RGBA = {fitness:'rgba(255,107,53,.14)',nutrition:'rgba(52,211,153,.14)',sleep:'rgba(76,139,245,.14)',finance:'rgba(251,191,36,.14)'};
+function _domIcon(d,size){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="${size||20}" height="${size||20}">${DOMAIN_ICON[d]||''}</svg>`}
+function _enabled(d){return !(typeof IronLogNav!=='undefined' && IronLogNav.isComingSoon(d, DB && DB.settings));}
+let _todayRev = 'day';
+
+// Polished Coming-Soon screen (Sleep/Finance) — gated, never deletes data.
+const COMING_SOON = {
+  sleep:{kick:'Sleep',accent:'var(--sleep)',grad:['#bcd3ff','#6ea0ff','#2f6df0'],bullets:['Bedtime consistency & sleep-debt tracking','Recovery vs. training-load overlay','Gentle wind-down reminders']},
+  finance:{kick:'Finances',accent:'var(--finance)',grad:['#ffe6a3','#ffcf5c','#f5a623'],bullets:['Budgets that adapt to your month','Spending-pace alerts before you overshoot','Category trends & saving goals']}
+};
+function comingSoonHTML(domain){
+  const c=COMING_SOON[domain]; if(!c) return '';
+  return `<div class="cs-wrap">
+    <div class="cs-mk">${FORGED_CHEVRON(76,c.grad)}</div>
+    <div class="cs-kick" style="color:${c.accent}">${c.kick}</div>
+    <div class="cs-h">Coming soon</div>
+    <div class="cs-p">We'd rather ship it right than half-baked. Here's what's being forged for ${domain}:</div>
+    <div class="cs-list">${c.bullets.map(b=>`<div class="cs-item"><span class="cs-dot" style="background:${c.accent}"></span>${b}</div>`).join('')}</div>
+    <div class="cs-foot">In the workshop</div>
+  </div>`;
+}
+
+function renderToday(){
+  const pg=document.getElementById('todayContent'); if(!pg) return;
+  const todayStr=today();
+  const yd=new Date(); yd.setDate(yd.getDate()-1); const yStr=yd.toISOString().slice(0,10);
+  const now=new Date();
+  const hr=now.getHours();
+  const greet=hr<12?'morning':hr<17?'afternoon':'evening';
+  const dayLbl=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  // ── source data (defensive: never let one empty domain blank the hub) ──
+  let splitSugg=null, streak=0, sleepSum={loggedDays:0,avgDurationMinutes:0,consistencyMinutes:0,logs:[]}, finSum={total:0,budget:0,remaining:0}, ntot={calories:0,protein:0,carbs:0,fat:0}, ntar={calories:0,protein:0};
+  try{ splitSugg=IronLogFitness.leastRecentSplitSuggestion(DB.splits,DB.exercises,DB.workouts,todayStr); }catch(_){}
+  try{ streak=calcStreak(); }catch(_){}
+  try{ sleepSum=sleepWeeklySummary(todayStr); }catch(_){}
+  try{ finSum=financeMonthSummary(); }catch(_){}
+  try{ const nday=nutritionDay(todayStr); ntot=nutritionTotals(nday); ntar=nutritionTarget(nday); }catch(_){}
+  const lastSleep=(DB.sleep&&DB.sleep.logs&&DB.sleep.logs[0])||null;
+  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+
+  // ── suggestions (pure engine) ──
+  let suggestions=[];
+  try{
+    const ctx={
+      fitness: splitSugg?{split:{id:splitSugg.sp.id,name:splitSugg.sp.name},daysSince:splitSugg.daysSince,streak}:{streak},
+      sleep: {loggedDays:sleepSum.loggedDays,consistencyMinutes:sleepSum.consistencyMinutes,lastLog:lastSleep,targetMinutes:420},
+      nutrition: {calories:ntot.calories,calorieTarget:ntar.calories,protein:ntot.protein,proteinTarget:ntar.protein},
+      finance: {budget:finSum.budget,spent:finSum.total,dayOfMonth:now.getDate(),daysInMonth:dim}
+    };
+    suggestions=IronLogInsights.homeSuggestions(ctx,4);
+  }catch(_){}
+
+  // ── recap helpers ──
+  const ySets=DB.workouts.filter(w=>w.date===yStr).reduce((a,w)=>a+((w.sets&&w.sets.length)||0),0);
+  const sessions7=new Set(DB.workouts.filter(w=>{const d=new Date(w.date);return (now-d)/86400000<=7;}).map(w=>w.date)).size;
+  const ySleep=(DB.sleep&&DB.sleep.logs||[]).find(l=>l.date===yStr);
+  const ySpend=(DB.finance&&DB.finance.expenses||[]).filter(x=>x.date===yStr).reduce((a,x)=>a+(Number(x.amount)||0),0);
+  const yNut=(DB.nutrition&&DB.nutrition.diary&&DB.nutrition.diary[yStr])?nutritionTotals(DB.nutrition.diary[yStr]):null;
+  const rc=(d,name,val,sub,subColor)=>`<div class="td-rc" onclick="enterDomain('${d}')"><div class="td-rc-edge" style="background:var(--${d})"></div>
+    <div class="td-rc-top"><span class="td-rc-dot" style="background:var(--${d})"></span><span class="td-rc-name">${name}</span></div>
+    <div class="td-rc-val">${val}</div><div class="td-rc-sub"${subColor?` style="color:${subColor}"`:''}>${sub}</div></div>`;
+
+  const recapDay=`<div class="td-recap${_todayRev==='day'?' show':''}" data-rev="day" style="display:${_todayRev==='day'?'grid':'none'}">
+    ${rc('fitness','Fitness', ySets?`${ySets}<small>sets</small>`:'Rest<small>day</small>', ySets?'Trained yesterday':'No session logged')}
+    ${rc('nutrition','Nutrition', yNut?`${yNut.calories}<small>kcal</small>`:'—', yNut?'Logged yesterday':'No food logged')}
+    ${rc('sleep','Sleep', ySleep?`${Math.floor(ySleep.durationMinutes/60)}h ${ySleep.durationMinutes%60}<small>m</small>`:'—', ySleep?`bed ${esc(ySleep.bedtime)}`:'No sleep logged')}
+    ${rc('finance','Finance', ySpend?`€${nRound(ySpend)}<small>spent</small>`:'€0', 'Yesterday')}
+  </div>`;
+  const avgH=Math.floor(sleepSum.avgDurationMinutes/60), avgM=sleepSum.avgDurationMinutes%60;
+  const recapWeek=`<div class="td-recap${_todayRev==='week'?' show':''}" data-rev="week" style="display:${_todayRev==='week'?'grid':'none'}">
+    ${rc('fitness','Fitness', `${sessions7}<small>sessions</small>`, 'Last 7 days')}
+    ${rc('nutrition','Nutrition', `${ntot.calories}<small>kcal</small>`, 'Today so far')}
+    ${rc('sleep','Sleep', sleepSum.loggedDays?`${avgH}h ${avgM}<small>avg</small>`:'—', `${sleepSum.loggedDays}/7 nights`)}
+    ${rc('finance','Finance', finSum.budget?`€${nRound(finSum.total)}<small>of ${nRound(finSum.budget)}</small>`:`€${nRound(finSum.total)}<small>spent</small>`, 'This month')}
+  </div>`;
+
+  // ── suggestion cards ──
+  const suggHtml = suggestions.length ? suggestions.map((s,i)=>{
+    const cta = s.cta ? `<button class="td-sg-cta" onclick="enterDomain('${s.cta.view}');setSub('${s.cta.view}','${s.cta.sub}');${s.cta.splitId?`setTimeout(()=>goToSplit('${jsa(s.cta.splitId)}'),90)`:''}">${_domIcon('fitness',13)}${esc(s.cta.label)}</button>` : '';
+    return `<div class="td-sg" id="td-sg-${i}">
+      <div class="td-sg-ic" style="background:${DOMAIN_RGBA[s.domain]};color:var(--${s.domain})">${_domIcon(s.domain,20)}</div>
+      <div class="td-sg-body"><div class="td-sg-dom" style="color:var(--${s.domain})">${s.domain}</div><div class="td-sg-txt">${s.text}</div>${cta}</div>
+      <button class="td-sg-x" onclick="document.getElementById('td-sg-${i}').remove()">✕</button>
+    </div>`;
+  }).join('') : `<div class="td-sg"><div class="td-sg-body"><div class="td-sg-txt" style="color:var(--t2)">Nothing urgent — log a workout, meal or sleep and your daily focus shows up here.</div></div></div>`;
+
+  // ── jump-in tiles ──
+  const tileVal={
+    fitness: splitSugg?`${esc(splitSugg.sp.name)} suggested · ${DB.workouts.length} logs`:`${DB.workouts.length} logs`,
+    nutrition: `${ntot.calories} / ${ntar.calories||0} today`,
+    sleep: _enabled('sleep')?`${sleepSum.loggedDays}/7 logged`:'Coming soon',
+    finance: _enabled('finance')?`€${nRound(finSum.total)} spent`:'Coming soon'
+  };
+  const tile=(d,nm)=>`<div class="td-tile" onclick="enterDomain('${d}')"><div class="td-t-glow" style="background:var(--${d})"></div>
+    <div class="td-t-top"><span class="td-t-ic" style="background:${DOMAIN_RGBA[d]};color:var(--${d})">${_domIcon(d,15)}</span><span class="td-t-nm">${nm}</span></div>
+    <div class="td-t-val">${tileVal[d]}</div></div>`;
+
+  pg.innerHTML=`<div class="td-scroll">
+    <div class="td-greet"><div class="td-day">${dayLbl}</div><div class="td-hi">Good <em>${greet}</em></div></div>
+    <div class="td-seg" id="tdSeg">
+      <button class="${_todayRev==='day'?'on':''}" onclick="setTodayRecap('day')">Yesterday</button>
+      <button class="${_todayRev==='week'?'on':''}" onclick="setTodayRecap('week')">Last 7 days</button>
+    </div>
+    ${recapDay}${recapWeek}
+    <div class="td-seclbl"><span class="td-pip"></span>Today's focus</div>
+    <div class="td-sugg">${suggHtml}</div>
+    <div class="td-seclbl"><span class="td-pip"></span>Jump in</div>
+    <div class="td-tiles">${tile('fitness','Fitness')}${tile('nutrition','Nutrition')}${tile('sleep','Sleep')}${tile('finance','Finance')}</div>
+  </div>`;
+}
+function setTodayRecap(r){
+  _todayRev=r;
+  document.querySelectorAll('#tdSeg button').forEach(b=>b.classList.toggle('on', b.textContent.toLowerCase().includes(r==='day'?'yesterday':'7')));
+  document.querySelectorAll('[data-rev]').forEach(el=>{const on=el.dataset.rev===r; el.style.display=on?'grid':'none'; el.classList.toggle('show',on);});
+}
+
+// ── Nutrition · Foods sub-tab (saved food library) ────────────────────────────
+function renderNutritionFoods(){
+  const el=document.getElementById('nutritionContent'); if(!el) return;
+  ensureNutrition(DB);
+  const foods=(DB.nutrition.foods||[]).filter(f=>!f.archived);
+  const rows=foods.length?foods.map(f=>{
+    const p=f.per100g||{}; const cal=p.calories!=null?`${Math.round(p.calories)} kcal`:''; const pro=p.protein!=null?` · ${nRound(p.protein)}P`:'';
+    return `<div class="nut-meal"><div><div class="nut-meal-name">${esc(f.name||'Food')}</div><div class="nut-meal-sub">per 100g${cal?' · '+cal:''}${pro}</div></div></div>`;
+  }).join(''):'<div class="nut-meal-sub">No saved foods yet — add a food from the Today tab to build your library.</div>';
+  el.innerHTML=`<div class="nut-wrap">
+    <div class="nut-card"><div class="nut-kicker">Saved foods · ${foods.length}</div>${rows}</div>
+    <button class="nut-add" onclick="openNutritionAdd('snacks')">Add food</button>
+    <button class="nut-secondary" onclick="openRecipeBuilder()">Create recipe</button>
+  </div>`;
+}
+
+// ── Nutrition · Trends sub-tab (trend + coach) ────────────────────────────────
+function renderNutritionTrends(){
+  const el=document.getElementById('nutritionContent'); if(!el) return;
+  ensureNutrition(DB);
+  let coach={trend:null,lines:[],confidence:'low'};
+  try{ coach=nutritionCoachSummary(); }catch(_){}
+  el.innerHTML=`<div class="nut-wrap">
+    ${nutritionTrendCardHTML(coach.trend)}
+    <div class="nut-card"><div class="nut-kicker">Coach · ${coach.confidence} confidence</div>${(coach.lines||[]).map(l=>`<div class="nut-meal-sub" style="margin-bottom:6px">${esc(l)}</div>`).join('')||'<div class="nut-meal-sub">Log a few days to unlock coaching.</div>'}<button class="mini" onclick="openNutritionTargets()">Targets</button></div>
+  </div>`;
+}
+
 // ── Settings sheet (replaces sidebar footer) ──────────────────────────────────
 function renderSleep(){
   const el=document.getElementById('sleepContent');if(!el)return;
   ensureSleep(DB);
+  if(typeof IronLogNav!=='undefined' && IronLogNav.isComingSoon('sleep', DB.settings)){ el.innerHTML=comingSoonHTML('sleep'); return; }
   const summary=sleepWeeklySummary(today());
   const avgH=Math.floor(summary.avgDurationMinutes/60),avgM=summary.avgDurationMinutes%60;
   const rows=DB.sleep.logs.slice(0,14).map(l=>`<div class="nut-meal">
@@ -4420,6 +4688,7 @@ function deleteSleepEntry(id){deleteSleepLog(id);saveDB();renderSleep();toast('S
 function renderFinance(){
   const el=document.getElementById('financeContent');if(!el)return;
   ensureFinance(DB);
+  if(typeof IronLogNav!=='undefined' && IronLogNav.isComingSoon('finance', DB.settings)){ el.innerHTML=comingSoonHTML('finance'); return; }
   const month=monthKey();
   const summary=financeMonthSummary(month);
   const cats=DB.finance.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
@@ -4465,7 +4734,6 @@ function deleteExpenseEntry(id){deleteExpense(id);saveDB();renderFinance();toast
 function showSettingsSheet() {
   const on = DB.settings?.restEnabled !== false;
   document.getElementById('shTitle').textContent = 'Settings';
-  // Build settings sheet HTML into the existing sheet
   const restSecs = DB.settings?.restSecs || 90;
 
   document.getElementById('shInp').style.display = 'none';
@@ -4475,61 +4743,77 @@ function showSettingsSheet() {
   const acts = document.querySelector('#addSheet .sh-acts');
   if (acts) acts.style.display = 'none';
 
-  // Build body
   let existing = document.getElementById('settSheetBody');
   if (existing) existing.remove();
+  const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
   const body = document.createElement('div');
   body.id = 'settSheetBody';
-  body.style.cssText = 'padding:0 18px 32px;display:flex;flex-direction:column;gap:0';
+  body.style.cssText = 'padding:0 18px 32px;display:flex;flex-direction:column;gap:16px';
   body.innerHTML = `
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Rest Timer</div>
-    <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${on?'12px':'0'}">
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">Auto rest timer</div>
-          <div style="font-size:11px;color:var(--t3)">Starts after each set</div>
-        </div>
-        <button onclick="toggleRestTimer();showSettingsSheet()" style="width:44px;height:26px;border-radius:999px;border:none;cursor:pointer;transition:all .2s;background:${on?'var(--acc)':'var(--s3)'};position:relative">
-          <div style="position:absolute;top:3px;left:${on?'21px':'3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:all .2s"></div>
+    <div data-settings-section="Data">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Data</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="exportData()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#8681;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export JSON</div><div style="font-size:11px;color:var(--t3)">Full backup of all your data</div></div>
         </button>
+        <button onclick="document.getElementById('impF').click()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#8679;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Import JSON</div><div style="font-size:11px;color:var(--t3)">Restore from a backup file</div></div>
+        </button>
+        <button onclick="closeSheet();exportMarkdown()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,179,138,.06));border:1.5px solid rgba(255,107,53,.25);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#10022;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export for AI analysis</div><div style="font-size:11px;color:var(--t2)">Markdown summary for coaching</div></div>
+        </button>
+        <div style="background:var(--glass);border:1px dashed var(--border-hi);border-radius:var(--r-lg);padding:14px 16px">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Google Drive backup</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px;line-height:1.45">Drive OAuth client ID required before automatic cloud backup can be enabled. Manual JSON export remains the active backup path.</div>
+        </div>
       </div>
-      ${on ? `<div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:12px;color:var(--t2);flex:1">Duration</span>
-        ${[60,90,120,180].map(s=>`<button onclick="DB.settings.restSecs=${s};saveDB();showSettingsSheet()" style="padding:5px 10px;border-radius:var(--r-pill);border:1.5px solid ${restSecs===s?'var(--acc)':'var(--border)'};background:${restSecs===s?'var(--acc-dim)':'transparent'};color:${restSecs===s?'var(--acc)':'var(--t2)'};font-size:11px;font-weight:600;cursor:pointer">${s}s</button>`).join('')}
-      </div>` : ''}
     </div>
 
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Theme</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-      ${THEMES.map(t=>`<button onclick="setTheme('${jsa(t.id)}');showSettingsSheet()" style="display:flex;align-items:center;gap:8px;background:var(--glass);border:1.5px solid ${getTheme()===t.id?'var(--acc)':'var(--border)'};border-radius:var(--r-lg);padding:10px;cursor:pointer;color:var(--text)">
-        <span style="width:22px;height:22px;border-radius:50%;background:${t.bg};border:1px solid var(--border);position:relative;display:inline-block"><span style="position:absolute;right:2px;bottom:2px;width:8px;height:8px;border-radius:50%;background:${t.acc}"></span></span>
-        <span style="font-size:12px;font-weight:700">${esc(t.name)}</span>
-      </button>`).join('')}
+    <div data-settings-section="Appearance">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Appearance</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${THEMES.map(t=>`<button onclick="setTheme('${jsa(t.id)}');showSettingsSheet()" style="display:flex;align-items:center;gap:8px;background:var(--glass);border:1.5px solid ${getTheme()===t.id?'var(--acc)':'var(--border)'};border-radius:var(--r-lg);padding:10px;cursor:pointer;color:var(--text)">
+          <span style="width:22px;height:22px;border-radius:50%;background:${t.bg};border:1px solid var(--border);position:relative;display:inline-block"><span style="position:absolute;right:2px;bottom:2px;width:8px;height:8px;border-radius:50%;background:${t.acc}"></span></span>
+          <span style="font-size:12px;font-weight:700">${esc(t.name)}</span>
+        </button>`).join('')}
+      </div>
     </div>
 
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Data</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-      <button onclick="exportData()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-        <span style="font-size:20px">⬇</span>
-        <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export JSON</div><div style="font-size:11px;color:var(--t3)">Full backup of all your data</div></div>
-      </button>
-      <button onclick="document.getElementById('impF').click()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-        <span style="font-size:20px">⬆</span>
-        <div><div style="font-size:14px;font-weight:600;color:var(--text)">Import JSON</div><div style="font-size:11px;color:var(--t3)">Restore from a backup file</div></div>
-      </button>
-      <button onclick="closeSheet();exportMarkdown()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,179,138,.06));border:1.5px solid rgba(255,107,53,.25);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-        <span style="font-size:20px">✦</span>
-        <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export for AI analysis</div><div style="font-size:11px;color:var(--t2)">Markdown summary · paste into ChatGPT / Claude</div></div>
+    <div data-settings-section="Training">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Training</div>
+      <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${on?'12px':'0'}">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--text)">Auto rest timer</div>
+            <div style="font-size:11px;color:var(--t3)">Starts after each set</div>
+          </div>
+          <button onclick="toggleRestTimer();showSettingsSheet()" style="width:44px;height:26px;border-radius:999px;border:none;cursor:pointer;transition:all .2s;background:${on?'var(--acc)':'var(--s3)'};position:relative">
+            <div style="position:absolute;top:3px;left:${on?'21px':'3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:all .2s"></div>
+          </button>
+        </div>
+        ${on ? `<div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--t2);flex:1">Duration</span>
+          ${[60,90,120,180].map(s=>`<button onclick="DB.settings.restSecs=${s};saveDB();showSettingsSheet()" style="padding:5px 10px;border-radius:var(--r-pill);border:1.5px solid ${restSecs===s?'var(--acc)':'var(--border)'};background:${restSecs===s?'var(--acc-dim)':'transparent'};color:${restSecs===s?'var(--acc)':'var(--t2)'};font-size:11px;font-weight:600;cursor:pointer">${s}s</button>`).join('')}
+        </div>` : ''}
+      </div>
+      <button onclick="closeSheet();addSplit()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left;width:100%">
+        <span style="font-size:20px">+</span>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text)">New workout day</div><div style="font-size:11px;color:var(--t3)">Add a new training split</div></div>
       </button>
     </div>
 
-    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Workout</div>
-    <button onclick="closeSheet();addSplit()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-      <span style="font-size:20px">＋</span>
-      <div><div style="font-size:14px;font-weight:600;color:var(--text)">New workout day</div><div style="font-size:11px;color:var(--t3)">Add a new training split</div></div>
-    </button>
+    <div data-settings-section="About">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">About</div>
+      <div style="background:var(--glass);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">IronLog V4</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px;line-height:1.45">Local-first training, nutrition, sleep and finance shell. Your data stays on this device unless you export it.</div>
+      </div>
+    </div>
 
-    <button onclick="closeSheet()" style="margin-top:18px;padding:14px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-size:14px;font-weight:600;cursor:pointer">Close</button>
+    <button onclick="closeSheet()" style="padding:14px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-size:14px;font-weight:600;cursor:pointer">Close</button>
   `;
 
   const sheet = document.getElementById('addSheet');
@@ -4623,7 +4907,8 @@ function startFresh(){
 (function(){
   if(localStorage.getItem(dbKey())){
     DB=loadDB();
-    renderSidebar();updateStreak();switchTab('home');
+    if(typeof IronLogNav!=='undefined') navState = IronLogNav.restore(DB);
+    renderSidebar();updateStreak();navigate(navState.view, navState.sub[navState.view]);
     dismissWelcome();
   }
   // else: welcome overlay stays visible until user picks Import or Start fresh

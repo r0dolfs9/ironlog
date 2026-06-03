@@ -5,6 +5,7 @@ const vm = require('vm');
 const html = fs.readFileSync('IronLog v3.html', 'utf8');
 const storageScript = fs.readFileSync('app-storage.js', 'utf8');
 const fitnessScript = fs.readFileSync('app-fitness.js', 'utf8');
+const navScript = fs.readFileSync('app-nav.js', 'utf8');
 const script = html.match(/<script>([\s\S]*)<\/script>/)[1];
 
 assert.ok(html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'), 'domain tab bar should use four equal columns');
@@ -37,6 +38,7 @@ context.globalThis = context;
 vm.createContext(context);
 vm.runInContext(storageScript, context);
 vm.runInContext(fitnessScript, context);
+vm.runInContext(navScript, context);
 vm.runInContext(script, context);
 vm.runInContext('DB = loadDB();', context);
 
@@ -54,9 +56,22 @@ vm.runInContext('DB = loadDB();', context);
 });
 
 assert.strictEqual(vm.runInContext('DB.app.activeDomain', context), 'fitness');
+assert.strictEqual(vm.runInContext('DB.app.lastView', context), 'home');
+assert.strictEqual(vm.runInContext('JSON.stringify(DB.app.lastSub)', context), JSON.stringify({ fitness: 'Home', nutrition: 'Today' }));
+assert.strictEqual(vm.runInContext('JSON.stringify(DB.settings.domainsEnabled)', context), JSON.stringify({ fitness: true, nutrition: true, sleep: false, finance: false }));
 assert.ok(vm.runInContext('Array.isArray(DB.sleep.logs)', context));
 assert.ok(vm.runInContext('Array.isArray(DB.finance.expenses)', context));
 assert.ok(vm.runInContext('DB.finance.categories.includes("Food")', context));
+
+const storedWithoutNav = JSON.parse(vm.runInContext('JSON.stringify(DB)', context));
+delete storedWithoutNav.app.lastView;
+delete storedWithoutNav.app.lastSub;
+delete storedWithoutNav.settings.domainsEnabled;
+context.localStorage.setItem('il4__default', JSON.stringify(storedWithoutNav));
+vm.runInContext('DB = loadDB();', context);
+assert.strictEqual(vm.runInContext('DB.app.lastView', context), 'home');
+assert.strictEqual(vm.runInContext('JSON.stringify(DB.app.lastSub)', context), JSON.stringify({ fitness: 'Home', nutrition: 'Today' }));
+assert.strictEqual(vm.runInContext('JSON.stringify(DB.settings.domainsEnabled)', context), JSON.stringify({ fitness: true, nutrition: true, sleep: false, finance: false }));
 
 const overnight = context.sleepDurationMinutes('2026-05-28', '23:30', '07:10');
 assert.strictEqual(overnight, 460);

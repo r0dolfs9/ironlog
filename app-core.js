@@ -25,6 +25,16 @@
     if(!db.app)db.app={activeDomain:'fitness',version:1};
     if(!db.app.activeDomain)db.app.activeDomain='fitness';
     if(!db.app.version)db.app.version=1;
+    if(root.IronLogNav&&typeof root.IronLogNav.normalizeNav==='function'){
+      root.IronLogNav.normalizeNav(db);
+    }else{
+      if(!db.app.lastView)db.app.lastView='home';
+      if(!db.app.lastSub)db.app.lastSub={};
+      if(!db.app.lastSub.fitness)db.app.lastSub.fitness='Home';
+      if(!db.app.lastSub.nutrition)db.app.lastSub.nutrition='Today';
+      if(!db.settings)db.settings={};
+      if(!db.settings.domainsEnabled)db.settings.domainsEnabled={fitness:true,nutrition:true,sleep:false,finance:false};
+    }
     ensureSleep(db);
     ensureFinance(db);
     return db.app;

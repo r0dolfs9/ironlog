@@ -1,18 +1,19 @@
 // IronLog service worker
-const CACHE='ironlog-v22';
+const CACHE='ironlog-v24';
 const ASSETS=[
   './',
   './index.html',
   './app-core.js',
   './app-storage.js',
   './app-fitness.js',
+  './app-nav.js',
+  './app-insights.js',
   './favicon.svg',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-192.png',
   './icon-maskable-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap'
 ];
 self.addEventListener('install',e=>{
