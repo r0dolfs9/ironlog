@@ -68,6 +68,7 @@
   /* ── Shadow ── */
   --shadow: 0 24px 48px -16px rgba(0,0,0,0.6);
   --ease:cubic-bezier(.4,0,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
 }
 html[data-theme="parchment"]{
   --bg:#f7f3ea;--s1:#fffaf0;--s2:#eee6d8;--s3:#e2d7c8;--s4:#d5c8b8;
@@ -339,6 +340,33 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 .page.tab-enter-left{animation:tabSlideInLeft .3s cubic-bezier(0.34,1.56,0.64,1) forwards}
 .page.tab-exit-right{animation:tabSlideOutRight .22s cubic-bezier(0.4,0,1,1) forwards}
 .page.tab-exit-left{animation:tabSlideOutLeft .22s cubic-bezier(0.4,0,1,1) forwards}
+.pages::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:20;
+  background:linear-gradient(90deg,transparent, color-mix(in srgb,var(--acc) 16%,transparent), transparent);
+  transform:translateX(-115%);opacity:0
+}
+.pages.motion-domain::after{animation:domainSweep .52s var(--ease)}
+.motion-stagger .hc-card,
+.motion-stagger .td-rc,
+.motion-stagger .td-sg,
+.motion-stagger .td-tile,
+.motion-stagger .nut-card,
+.motion-stagger .nut-meal,
+.motion-stagger .nut-add,
+.motion-stagger .nut-secondary,
+.motion-stagger .done-ex-card{
+  animation:motionRise .42s var(--ease) both
+}
+.motion-stagger .nut-bar-fill{transform-origin:left;animation:motionFill .65s var(--ease) both}
+.motion-dismiss{animation:suggestionDismiss .32s var(--ease) forwards}
+@keyframes domainSweep{0%{opacity:0;transform:translateX(-115%)}28%{opacity:1}100%{opacity:0;transform:translateX(115%)}}
+@keyframes motionRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes motionFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes suggestionDismiss{
+  0%{opacity:1;transform:translateX(0);max-height:120px;margin-bottom:0}
+  30%{transform:translateX(8px) rotate(1deg)}
+  100%{opacity:0;transform:translateX(110%) rotate(2deg);max-height:0;margin-bottom:-10px;padding-top:0;padding-bottom:0;border-width:0}
+}
 
 /* ── Sub-tab pills (for Progress / more) ── */
 .subtabs{
@@ -850,6 +878,32 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
 }
 .sh-ok:hover{box-shadow:0 4px 18px var(--acc-glow)}
 .sh-ok:active{opacity:.8}
+.sheet.settings-sheet{
+  box-sizing:border-box;
+  max-height:calc(100dvh - 16px);
+  display:flex;flex-direction:column;
+  padding-bottom:calc(var(--safe-bot) + 14px)
+}
+.settings-body{
+  min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  margin:0 -18px;padding:0 18px 16px;
+  display:flex;flex-direction:column;gap:16px
+}
+.settings-footer{
+  flex-shrink:0;margin:0 -18px calc(var(--safe-bot) * -1);
+  padding:12px 18px calc(var(--safe-bot) + 12px);
+  border-top:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(0,0,0,0),var(--s1) 18%);
+  display:flex;gap:8px
+}
+.settings-data-btn,.settings-back-btn{
+  width:100%;border-radius:var(--r-lg);padding:14px 16px;
+  font-family:'Geist',system-ui,sans-serif;font-size:14px;font-weight:800;
+  cursor:pointer;transition:opacity .15s,transform .1s;text-align:center
+}
+.settings-data-btn{background:var(--acc);border:none;color:#100904}
+.settings-back-btn{background:var(--s2);border:1px solid var(--border);color:var(--text)}
+.settings-data-btn:active,.settings-back-btn:active{opacity:.82;transform:scale(.99)}
 
 /* ── Confirm */
 .conf-ov{
@@ -889,9 +943,23 @@ body{font-family:'Geist',system-ui,sans-serif;color:var(--text);-webkit-font-smo
   font-size:13px;font-weight:500;font-family:'Geist',sans-serif;
   opacity:0;transition:all .24s var(--ease);
   pointer-events:none;white-space:nowrap;z-index:500;
-  box-shadow:0 8px 32px rgba(0,0,0,.45)
+  box-shadow:0 8px 32px rgba(0,0,0,.45);
+  display:flex;align-items:center;gap:10px
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-check{
+  width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  border:1.5px solid var(--success);background:rgba(127,176,105,.14);color:var(--success);
+  transform:scale(.4);opacity:0
+}
+.toast-check svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:34;stroke-dashoffset:34}
+.toast.motion-save .toast-check{animation:savePop .48s var(--spring) .04s forwards}
+.toast.motion-save .toast-check svg{animation:saveDraw .34s var(--ease) .27s forwards}
+.toast.motion-pr{border-left-color:var(--acc);box-shadow:0 8px 32px rgba(0,0,0,.45),0 0 28px -14px var(--acc)}
+.toast.motion-pr .toast-check{border-color:var(--acc);background:var(--acc-dim);color:var(--acc);animation:savePop .5s var(--spring) forwards}
+.toast.motion-pr .toast-check svg{animation:saveDraw .34s var(--ease) .25s forwards}
+@keyframes savePop{to{transform:scale(1);opacity:1}}
+@keyframes saveDraw{to{stroke-dashoffset:0}}
 
 /* ── Rest Timer — SVG Ring */
 .rest-ov{
@@ -1761,6 +1829,7 @@ function loadDB(){
 }
 function saveDB(){IronLogStorage.writeStoredDB(localStorage,dbKey(),DB)}
 let DB;
+function ensureDB(){if(!DB)DB=loadDB();return DB}
 let openCards={},setCounts={},addSheetCat=null,curSplit=null,cardioOpen=false,chartInst={};
 let _nutritionMealId='snacks';
 let _recipeDraft={ingredients:[]};
@@ -2169,10 +2238,52 @@ function nutritionMarkdownLines(){
 function vol(sets){return IronLogFitness.setVolume(sets)}
 function maxWt(sets){return IronLogFitness.maxSetWeight(sets)}
 function toast(msg){
+  if(String(msg).includes('New PR!')){toastMotion(String(msg).replace(/^.*New PR! /,'New PR! '),'pr');return;}
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);
 }
+function playMotion(target, cls='motion-stagger', ms=700){
+  const el=typeof target==='string'?document.querySelector(target):target;
+  if(!el)return;
+  el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);
+  clearTimeout(el._motionT);el._motionT=setTimeout(()=>el.classList.remove(cls),ms);
+}
+function applyMotionStagger(root, selector){
+  const el=typeof root==='string'?document.querySelector(root):root;
+  if(!el)return;
+  el.querySelectorAll(selector).forEach((item,i)=>{item.style.animationDelay=Math.min(i*55,300)+'ms';});
+  playMotion(el,'motion-stagger',900);
+}
+function toastMotion(msg,type='save'){
+  const t=document.getElementById('toast');
+  if(!t)return;
+  const check='<span class="toast-check"><svg viewBox="0 0 24 24"><polyline points="5 13 10 18 19 6"/></svg></span>';
+  t.className='toast';
+  t.innerHTML=check+`<span>${esc(msg)}</span>`;
+  t.classList.add('show',type==='pr'?'motion-pr':'motion-save');
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.remove('show','motion-save','motion-pr');},2500);
+}
+function triggerDomainMotion(view){
+  const pages=document.getElementById('pages');
+  if(!pages)return;
+  pages.dataset.motionDomain=(view==='home')?'fitness':view;
+  playMotion(pages,'motion-domain',560);
+}
+function dismissSuggestion(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  playMotion(el,'motion-dismiss',360);
+  setTimeout(()=>el.remove(),320);
+}
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.td-sg-x');
+  if(!btn)return;
+  const card=btn.closest('.td-sg[id]');
+  if(!card)return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  dismissSuggestion(card.id);
+},true);
 let _cr=null;
 function confirm2(msg,yl='Delete'){
   return new Promise(r=>{
@@ -2732,7 +2843,7 @@ function saveEx(exId,cat){
     toast(`🏆 New PR! ${newBest}kg`);
   }else{
     haptic(15);
-    toast('Saved!');
+    toastMotion('Set logged','save');
   }
 }
 async function delEx(exId,cat){
@@ -2821,6 +2932,7 @@ function renderSplit(spId,col){
     doneSectionHtml=`<div class="done-section"><div class="done-section-lbl">Done this session</div>${doneCards}</div>`;
   }
   pg.innerHTML=hdr+sectionsHtml+doneSectionHtml+editTools;
+  applyMotionStagger(pg,'.done-ex-card');
   if(editing)setTimeout(()=>document.getElementById(`spNameInp-${spId}`)?.focus(),50);
 }
 function enterEditMode(spId){splitEditing=spId;renderSplit(spId,'')}
@@ -3090,8 +3202,10 @@ function closeSheet(){
   document.querySelectorAll('#addSheet .addsec-list').forEach(el=>el.remove());
   // Remove settings sheet body if present
   const sb=document.getElementById('settSheetBody');if(sb)sb.remove();
+  const sf=document.getElementById('settSheetFooter');if(sf)sf.remove();
   const nb=document.getElementById('nutSheetBody');if(nb)nb.remove();
   const rb=document.getElementById('recipeSheetBody');if(rb)rb.remove();
+  document.getElementById('addSheet')?.classList.remove('settings-sheet');
   // Restore title style
   const shTtl=document.getElementById('shTitle');
   if(shTtl){shTtl.style.fontFamily='';shTtl.style.fontSize='';}
@@ -3864,6 +3978,7 @@ function renderRecapContent(period){
 
 // ── Export / Import ───────────────────────────────────────────────────────────
 function exportData(){
+  ensureDB();
   const blob=new Blob([IronLogStorage.serializeBackup(DB)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=IronLogStorage.backupFilename(today());a.click();
@@ -3973,6 +4088,7 @@ function navigate(view, sub){
   _activeTab = (view==='home') ? 'fitness' : view;
 
   applyDomainAccent(view);
+  triggerDomainMotion(view);
   updateWordmark(view);
   updateBottomBarActive(view);
   renderSubnav(view);
@@ -4319,6 +4435,7 @@ function renderNutrition(){
     <button class="nut-add" onclick="openNutritionAdd('snacks')">Add food</button>
     <button class="nut-secondary" onclick="openRecipeBuilder()">Create recipe</button>
   </div>`;
+  applyMotionStagger(el,'.nut-card,.nut-meal,.nut-add,.nut-secondary');
 }
 function toggleNutritionTargetType(){
   const d=nutritionDay(today());
@@ -4496,6 +4613,7 @@ function renderHome() {
     ${bwCard}
     ${lostCard}
   </div>`;
+  applyMotionStagger(pg,'.hc-card');
 }
 
 // ── V4 domain icon/colour maps (shared by Today hub) ──────────────────────────
@@ -4615,6 +4733,7 @@ function renderToday(){
     <div class="td-seclbl"><span class="td-pip"></span>Jump in</div>
     <div class="td-tiles">${tile('fitness','Fitness')}${tile('nutrition','Nutrition')}${tile('sleep','Sleep')}${tile('finance','Finance')}</div>
   </div>`;
+  applyMotionStagger(pg,'.td-rc,.td-sg,.td-tile');
 }
 function setTodayRecap(r){
   _todayRev=r;
@@ -4732,6 +4851,7 @@ function saveExpenseFromUI(){
 function deleteExpenseEntry(id){deleteExpense(id);saveDB();renderFinance();toast('Expense deleted')}
 
 function showSettingsSheet() {
+  ensureDB();
   const on = DB.settings?.restEnabled !== false;
   document.getElementById('shTitle').textContent = 'Settings';
   const restSecs = DB.settings?.restSecs || 90;
@@ -4745,33 +4865,12 @@ function showSettingsSheet() {
 
   let existing = document.getElementById('settSheetBody');
   if (existing) existing.remove();
+  const oldFooter=document.getElementById('settSheetFooter');if(oldFooter)oldFooter.remove();
   const oldNut=document.getElementById('nutSheetBody');if(oldNut)oldNut.remove();
   const body = document.createElement('div');
   body.id = 'settSheetBody';
-  body.style.cssText = 'padding:0 18px 32px;display:flex;flex-direction:column;gap:16px';
+  body.className = 'settings-body';
   body.innerHTML = `
-    <div data-settings-section="Data">
-      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Data</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button onclick="exportData()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-          <span style="font-size:20px">&#8681;</span>
-          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export JSON</div><div style="font-size:11px;color:var(--t3)">Full backup of all your data</div></div>
-        </button>
-        <button onclick="document.getElementById('impF').click()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-          <span style="font-size:20px">&#8679;</span>
-          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Import JSON</div><div style="font-size:11px;color:var(--t3)">Restore from a backup file</div></div>
-        </button>
-        <button onclick="closeSheet();exportMarkdown()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,179,138,.06));border:1.5px solid rgba(255,107,53,.25);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
-          <span style="font-size:20px">&#10022;</span>
-          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export for AI analysis</div><div style="font-size:11px;color:var(--t2)">Markdown summary for coaching</div></div>
-        </button>
-        <div style="background:var(--glass);border:1px dashed var(--border-hi);border-radius:var(--r-lg);padding:14px 16px">
-          <div style="font-size:14px;font-weight:600;color:var(--text)">Google Drive backup</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:4px;line-height:1.45">Drive OAuth client ID required before automatic cloud backup can be enabled. Manual JSON export remains the active backup path.</div>
-        </div>
-      </div>
-    </div>
-
     <div data-settings-section="Appearance">
       <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Appearance</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
@@ -4815,15 +4914,72 @@ function showSettingsSheet() {
 
     <button onclick="closeSheet()" style="padding:14px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:transparent;color:var(--t2);font-size:14px;font-weight:600;cursor:pointer">Close</button>
   `;
+  const footer = document.createElement('div');
+  footer.id = 'settSheetFooter';
+  footer.className = 'settings-footer';
+  footer.innerHTML = `<button class="settings-data-btn" onclick="showSettingsDataSheet()">Import / Export</button>`;
 
   const sheet = document.getElementById('addSheet');
+  sheet.classList.add('settings-sheet');
   sheet.appendChild(body);
+  sheet.appendChild(footer);
+  sheet.classList.add('open');
+  document.getElementById('shBg').classList.add('open');
+}
+
+function showSettingsDataSheet() {
+  document.getElementById('shTitle').textContent = 'Import / Export';
+  document.getElementById('shInp').style.display = 'none';
+  document.getElementById('shTitle').style.fontFamily = "'Instrument Serif', serif";
+  document.getElementById('shTitle').style.fontSize = '24px';
+
+  const acts = document.querySelector('#addSheet .sh-acts');
+  if (acts) acts.style.display = 'none';
+
+  const existing = document.getElementById('settSheetBody');if(existing)existing.remove();
+  const oldFooter = document.getElementById('settSheetFooter');if(oldFooter)oldFooter.remove();
+  const body = document.createElement('div');
+  body.id = 'settSheetBody';
+  body.className = 'settings-body';
+  body.innerHTML = `
+    <div data-settings-section="Data">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 0 10px">Data safety</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="exportData()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#8681;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export JSON</div><div style="font-size:11px;color:var(--t3)">Full backup of all your data</div></div>
+        </button>
+        <button onclick="document.getElementById('impF').click()" style="display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#8679;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Import JSON</div><div style="font-size:11px;color:var(--t3)">Restore from a backup file</div></div>
+        </button>
+        <button onclick="closeSheet();exportMarkdown()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,179,138,.06));border:1.5px solid rgba(255,107,53,.25);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left">
+          <span style="font-size:20px">&#10022;</span>
+          <div><div style="font-size:14px;font-weight:600;color:var(--text)">Export for AI analysis</div><div style="font-size:11px;color:var(--t2)">Markdown summary for coaching</div></div>
+        </button>
+        <div style="background:var(--glass);border:1px dashed var(--border-hi);border-radius:var(--r-lg);padding:14px 16px">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Google Drive backup</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px;line-height:1.45">Drive OAuth client ID required before automatic cloud backup can be enabled. Manual JSON export remains the active backup path.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  const footer = document.createElement('div');
+  footer.id = 'settSheetFooter';
+  footer.className = 'settings-footer';
+  footer.innerHTML = `<button class="settings-back-btn" onclick="showSettingsSheet()">Back to settings</button>`;
+
+  const sheet = document.getElementById('addSheet');
+  sheet.classList.add('settings-sheet');
+  sheet.appendChild(body);
+  sheet.appendChild(footer);
   sheet.classList.add('open');
   document.getElementById('shBg').classList.add('open');
 }
 
 // ── N7: Markdown export for AI analysis (Step 25) ─────────────────────────────
 function exportMarkdown() {
+  ensureDB();
   const td = today();
   const lines = [];
   lines.push(`# IronLog Training Data`);

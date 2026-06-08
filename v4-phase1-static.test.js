@@ -21,4 +21,15 @@ assert.ok(sourceHtml.includes('enterDomain(d){ navigate(d, navState.sub[d]); }')
 assert.ok(sourceHtml.includes('if(typeof IronLogNav!==\'undefined\' && IronLogNav.isComingSoon(\'sleep\''), 'Sleep must be gated by Coming-Soon flag');
 assert.ok(sourceHtml.includes('if(typeof IronLogNav!==\'undefined\' && IronLogNav.isComingSoon(\'finance\''), 'Finance must be gated by Coming-Soon flag');
 
+assert.ok(sourceHtml.includes('function playMotion(target, cls'), 'animation helpers must expose replayable motion hooks');
+assert.ok(sourceHtml.includes('.motion-save .toast-check'), 'save feedback must use the selected checkmark/pulse animation');
+assert.ok(sourceHtml.includes('motion-domain'), 'domain navigation must trigger the selected accent morph');
+assert.ok(sourceHtml.includes('motion-stagger'), 'home/today cards must use the selected staggered entrance');
+assert.ok(sourceHtml.includes('dismissSuggestion('), 'focus suggestions must animate before being dismissed');
+assert.ok(sourceHtml.includes('animationDelay'), 'nutrition macro bars must stagger-fill from rendered data');
+assert.ok(sourceHtml.includes('function showSettingsDataSheet()'), 'settings must expose a dedicated import/export sheet page');
+assert.ok(sourceHtml.includes('settings-footer'), 'settings must keep the import/export entry pinned at the bottom');
+assert.ok(sourceHtml.includes('onclick="showSettingsDataSheet()">Import / Export</button>'), 'settings footer must open the import/export page');
+assert.ok(sourceHtml.includes('function ensureDB(){if(!DB)DB=loadDB();return DB}'), 'settings/export must tolerate first-run clicks before onboarding creates DB');
+
 console.log('v4-phase1-static tests passed');
