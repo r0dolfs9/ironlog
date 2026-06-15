@@ -29,6 +29,30 @@ assert.deepStrictEqual(storage.readStoredDB(store, storage.dbKey()), {
 });
 assert.strictEqual(store.getItem('il4__default'), legacyPayload);
 
+const activeProfilePayload = JSON.stringify({ exercises: { back: [] }, workouts: [{ id: 'active-profile' }] });
+const activeProfileStore = memoryStorage({
+  il4_active: 'athlete1',
+  il4_profiles: JSON.stringify([{ id: 'athlete1', name: 'Main' }]),
+  il4_athlete1: activeProfilePayload
+});
+assert.deepStrictEqual(storage.readStoredDB(activeProfileStore, storage.dbKey()), {
+  db: { exercises: { back: [] }, workouts: [{ id: 'active-profile' }] },
+  migrated: true
+});
+assert.strictEqual(activeProfileStore.getItem('il4__default'), activeProfilePayload);
+assert.strictEqual(activeProfileStore.getItem('il4_athlete1'), activeProfilePayload);
+
+const profileListPayload = JSON.stringify({ exercises: { legs: [] }, workouts: [{ id: 'profile-list' }] });
+const profileListStore = memoryStorage({
+  il4_profiles: JSON.stringify([{ id: 'solo', name: 'Solo' }]),
+  il4_solo: profileListPayload
+});
+assert.deepStrictEqual(storage.readStoredDB(profileListStore, storage.dbKey()), {
+  db: { exercises: { legs: [] }, workouts: [{ id: 'profile-list' }] },
+  migrated: true
+});
+assert.strictEqual(profileListStore.getItem('il4__default'), profileListPayload);
+
 assert.deepStrictEqual(storage.readStoredDB(memoryStorage(), storage.dbKey()), {
   db: null,
   migrated: false

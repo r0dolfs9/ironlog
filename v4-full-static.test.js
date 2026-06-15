@@ -22,6 +22,6 @@ assert.ok(sourceHtml.includes('Google Drive backup'), 'Settings must expose the 
 assert.ok(sourceHtml.includes('Drive OAuth client ID required'), 'Cloud backup must make the OAuth blocker explicit');
 
 assert.ok(!sw.includes('chart.umd.min.js'), 'service worker must stop caching Chart.js after custom SVG chart migration');
-assert.ok(/const CACHE='ironlog-v24'/.test(sw), 'service worker cache must be bumped after full V4 assets change');
+assert.ok(/const CACHE='ironlog-v2[5-9]'/.test(sw), 'service worker cache must be bumped after full V4 assets change');
 
 console.log('v4-full-static tests passed');

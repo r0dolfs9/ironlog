@@ -27,11 +27,36 @@
     return parsed;
   }
 
+  function oldProfileKeys(storage){
+    const keys = [];
+    const active = storage.getItem('il4_active');
+    if(active)keys.push(`il4_${active}`);
+
+    try {
+      const profiles = JSON.parse(storage.getItem('il4_profiles') || '[]');
+      if(Array.isArray(profiles)){
+        profiles.forEach(profile => {
+          const id = typeof profile === 'string' ? profile : profile && profile.id;
+          if(id)keys.push(`il4_${id}`);
+        });
+      }
+    } catch (_) {}
+
+    return [...new Set(keys)];
+  }
+
   function readStoredDB(storage, key, legacyKey){
     const activeKey = key || DEFAULT_KEY;
     const legacy = legacyKey || LEGACY_KEY;
     const raw = storage.getItem(activeKey);
     if(raw)return { db: JSON.parse(raw), migrated: false };
+    for(const oldProfileKey of oldProfileKeys(storage)){
+      const profileRaw = storage.getItem(oldProfileKey);
+      if(profileRaw){
+        storage.setItem(activeKey, profileRaw);
+        return { db: JSON.parse(profileRaw), migrated: true };
+      }
+    }
     const old = storage.getItem(legacy);
     if(!old)return { db: null, migrated: false };
     storage.setItem(activeKey, old);

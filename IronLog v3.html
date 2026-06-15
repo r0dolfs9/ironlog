@@ -1806,6 +1806,7 @@ const DEF = {
 function getProfiles(){return[]}
 function getActiveProfile(){return null}
 function dbKey(){return IronLogStorage.dbKey()}
+function hasSavedDB(){return !!IronLogStorage.readStoredDB(localStorage,dbKey()).db}
 
 // ── Database ──────────────────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -5061,7 +5062,7 @@ function startFresh(){
   dismissWelcome();
 }
 (function(){
-  if(localStorage.getItem(dbKey())){
+  if(hasSavedDB()){
     DB=loadDB();
     if(typeof IronLogNav!=='undefined') navState = IronLogNav.restore(DB);
     renderSidebar();updateStreak();navigate(navState.view, navState.sub[navState.view]);
